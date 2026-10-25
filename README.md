@@ -2,6 +2,12 @@
 
 一个人与八名 AI 围桌而坐的中文狼人杀游戏。原创月夜雾林场景、人物插画和界面，使用 GLM 生成玩家发言与决策，规则由服务端确定性引擎执行。玩法灵感来自 [Wolfcha](https://github.com/oil-oil/wolfcha)，本项目独立实现。
 
+## 演示视频
+
+[观看／下载两分钟实机演示](docs/demo/MoonlitVerdict-2min-demo.mp4) · [中文字幕（SRT）](docs/demo/MoonlitVerdict-2min-demo.zh.srt)
+
+以预言家视角展示一局真实 AI 对局，覆盖入席、夜间查验、发言辩论、投票放逐、观战和终局揭晓。等待过程经过剪辑，成片时长 2 分钟，1920×1080、30 fps；配有中文解说、AI 发言原文摘录配音及烧录字幕，并提供独立 SRT 字幕文件。
+
 ## 本地运行
 
 需要 Node.js 22+、pnpm 11、Python 3.12+ 和智谱标准模型 API Key。AI 配音使用本地 Kokoro 中文模型，玩家录音识别默认使用本地 SenseVoiceSmall INT8，文本对局使用智谱。识别也可显式切换到外部 API。
