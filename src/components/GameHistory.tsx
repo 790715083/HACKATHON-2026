@@ -17,6 +17,8 @@ export function GameHistory({ game, isOpen, onClose, onReplay, notes, onNoteChan
   const scroll = useRef<HTMLDivElement>(null);
   const following = useRef(true);
   const previousView = useRef('events:all:all');
+  const positions = useRef(new Map<string, { top: number; following: boolean }>());
+  const jumpToLatest = useRef(false);
   const filtered = day !== null || seat !== null;
   const viewKey = `${tab}:${day ?? 'all'}:${seat ?? 'all'}`;
   const events = filterHistory(game.events, day, seat);
@@ -51,22 +53,43 @@ export function GameHistory({ game, isOpen, onClose, onReplay, notes, onNoteChan
   useLayoutEffect(() => {
     const pane = scroll.current;
     if (!pane || pane.clientHeight === 0) return;
-    if (previousView.current !== viewKey) {
-      pane.scrollTop = 0;
+    if (jumpToLatest.current) {
+      following.current = true;
+      jumpToLatest.current = false;
+      previousView.current = viewKey;
+    } else if (previousView.current !== viewKey) {
+      const saved = positions.current.get(viewKey);
+      pane.scrollTop = saved?.top ?? 0;
+      following.current = tab === 'events' && !filtered && !!saved?.following;
       previousView.current = viewKey;
     }
     if (tab === 'events' && !filtered && following.current) {
       pane.scrollTop = pane.scrollHeight;
       setSeen(game.events.length);
     }
+    positions.current.set(viewKey, { top: pane.scrollTop, following: following.current });
     // Streamed text lives in the speaker panel. It never moves the history viewport.
   }, [game.events.length, viewKey, tab, filtered, isOpen, jump]);
 
+  const rememberPosition = () => {
+    const pane = scroll.current;
+    if (pane && pane.clientHeight > 0) positions.current.set(viewKey, { top: pane.scrollTop, following: following.current });
+  };
   const latest = () => {
+    rememberPosition();
+    jumpToLatest.current = true;
     following.current = true;
     setTab('events'); setDay(null); setSeat(null); setSeen(game.events.length); setJump(value => value + 1);
   };
-  const changeTab = (next: 'events' | 'votes') => { following.current = false; setTab(next); };
+  const clearFilters = () => {
+    rememberPosition();
+    setDay(null); setSeat(null);
+  };
+  const changeTab = (next: 'events' | 'votes') => {
+    if (next === tab) return;
+    rememberPosition();
+    setTab(next);
+  };
 
   return <>
     <div className="history-top"><div className="section-heading"><span className="eyebrow">THE CHRONICLE</span><h2>对局手记</h2></div><button className="icon-button mobile-only" aria-label="关闭记录" onClick={onClose}><X size={20}/></button></div>
@@ -81,14 +104,15 @@ export function GameHistory({ game, isOpen, onClose, onReplay, notes, onNoteChan
       <button role="tab" id="history-votes-tab" tabIndex={tab === 'votes' ? 0 : -1} aria-selected={tab === 'votes'} aria-controls="history-content" className={tab === 'votes' ? 'active' : ''} onClick={() => changeTab('votes')}><History size={16}/>投票记录</button>
     </div>
     <div className="history-filters">
-      <label><span>天数</span><select aria-label="按天数筛选手记" value={day ?? ''} onChange={event => { following.current = false; setDay(event.target.value ? Number(event.target.value) : null); }}><option value="">全部天数</option>{days.map(value => <option key={value} value={value}>第 {value} 天／夜</option>)}</select></label>
-      <label><span>玩家</span><select aria-label="按玩家筛选手记" value={seat ?? ''} onChange={event => { following.current = false; setSeat(event.target.value ? Number(event.target.value) : null); }}><option value="">全部玩家</option>{game.players.map(player => <option key={player.seat} value={player.seat}>{player.seat} 号 · {player.name}</option>)}</select></label>
-      {filtered && <button className="text-button" onClick={latest}>清除筛选</button>}
+      <label><span>天数</span><select aria-label="按天数筛选手记" value={day ?? ''} onChange={event => { rememberPosition(); setDay(event.target.value ? Number(event.target.value) : null); }}><option value="">全部天数</option>{days.map(value => <option key={value} value={value}>第 {value} 天／夜</option>)}</select></label>
+      <label><span>玩家</span><select aria-label="按玩家筛选手记" value={seat ?? ''} onChange={event => { rememberPosition(); setSeat(event.target.value ? Number(event.target.value) : null); }}><option value="">全部玩家</option>{game.players.map(player => <option key={player.seat} value={player.seat}>{player.seat} 号 · {player.name}</option>)}</select></label>
+      {filtered && <button className="text-button" onClick={clearFilters}>清除筛选</button>}
     </div>
     <div className="history-scroll" ref={scroll} id="history-content" role="tabpanel" aria-labelledby={tab === 'events' ? 'history-events-tab' : 'history-votes-tab'} tabIndex={0} onScroll={() => {
       const pane = scroll.current;
-      if (!pane) return;
+      if (!pane || pane.clientHeight === 0) return;
       following.current = tab === 'events' && !filtered && pane.scrollHeight - pane.scrollTop - pane.clientHeight < 48;
+      rememberPosition();
       if (following.current) setSeen(game.events.length);
     }}>
       {seat !== null && <details className="history-note-editor">
