@@ -52,7 +52,7 @@ test('pause cancels an in-flight AI call and preserves its uncommitted turn for 
   } finally { globalThis.fetch = originalFetch; if (previousDir === undefined) delete process.env.MOONLIT_DATA_DIR; else process.env.MOONLIT_DATA_DIR = previousDir; if (previousKey === undefined) delete process.env.ZHIPU_API_KEY; else process.env.ZHIPU_API_KEY = previousKey; await rm(directory, { recursive: true, force: true }); }
 });
 
-test('TTS routes synthesize only committed text, expose all chunks and reuse the audio cache', async () => {
+test('TTS routes recover from a busy model, synthesize only committed chunks and reuse the audio cache', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'moonlit-tts-')); const previousDir = process.env.MOONLIT_DATA_DIR; const originalFetch = globalThis.fetch;
   process.env.MOONLIT_DATA_DIR = directory;
   try {
@@ -64,8 +64,11 @@ test('TTS routes synthesize only committed text, expose all chunks and reuse the
     const bytes = Buffer.alloc(46); bytes.write('RIFF'); bytes.writeUInt32LE(38, 4); bytes.write('WAVE', 8);
     bytes.write('fmt ', 12); bytes.writeUInt32LE(16, 16); bytes.writeUInt16LE(1, 20); bytes.writeUInt16LE(1, 22);
     bytes.writeUInt32LE(24000, 24); bytes.writeUInt32LE(48000, 28); bytes.writeUInt16LE(2, 32); bytes.writeUInt16LE(16, 34); bytes.write('data', 36); bytes.writeUInt32LE(2, 40);
-    const spoken: string[] = []; const chunks = splitSpeech(text); assert.ok(chunks.length > 1);
-    globalThis.fetch = async (_url, init) => { spoken.push(JSON.parse(init?.body as string).input); return new Response(bytes, { headers: { 'Content-Type': 'audio/wav' } }); };
+    const spoken: string[] = []; const chunks = splitSpeech(text); assert.ok(chunks.length > 1); let attempts = 0;
+    globalThis.fetch = async (_url, init) => {
+      if (attempts++ === 0) return new Response('busy', { status: 503 });
+      spoken.push(JSON.parse(init?.body as string).input); return new Response(bytes, { headers: { 'Content-Type': 'audio/wav' } });
+    };
     for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
       const response = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex, text: '不能由客户端注入的其他文本' }, cookie));
       assert.equal(response.status, 200); assert.equal(response.headers.get('X-Audio-Chunks'), String(chunks.length));
@@ -74,6 +77,6 @@ test('TTS routes synthesize only committed text, expose all chunks and reuse the
     const cached = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex: 0 }, cookie)); assert.equal(cached.status, 200);
     const invalid = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex: chunks.length }, cookie)); assert.equal(invalid.status, 400);
     const unsigned = await tts(request('tts', { gameId: state.id, eventId: event.id })); assert.equal(unsigned.status, 401);
-    assert.deepEqual(spoken, chunks); assert.deepEqual(await readGame(state.id), state);
+    assert.equal(attempts, chunks.length + 1); assert.deepEqual(spoken, chunks); assert.deepEqual(await readGame(state.id), state);
   } finally { globalThis.fetch = originalFetch; if (previousDir === undefined) delete process.env.MOONLIT_DATA_DIR; else process.env.MOONLIT_DATA_DIR = previousDir; await rm(directory, { recursive: true, force: true }); }
 });

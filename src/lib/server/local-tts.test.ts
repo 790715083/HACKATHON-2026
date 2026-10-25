@@ -53,14 +53,65 @@ test('local TTS configuration reaches the selected deployment', async t => {
   await synthesizeSpeech('配音测试。', 0);
 });
 
-test('local TTS reports offline/busy services without falling back or exposing upstream bodies', async t => {
+test('local TTS reports offline/configuration failures without retrying or exposing upstream bodies', async t => {
   let calls = 0;
   mockFetch(t, async () => { calls++; throw new TypeError('ECONNREFUSED'); });
   await assert.rejects(synthesizeSpeech('测试。', 2), /pnpm tts:start/); assert.equal(calls, 1);
-  globalThis.fetch = async () => new Response('private upstream detail', { status: 503 });
-  await assert.rejects(synthesizeSpeech('测试。', 2), /服务忙/);
-  globalThis.fetch = async () => new Response('private upstream detail', { status: 400 });
-  await assert.rejects(synthesizeSpeech('测试。', 2), /TTS_BASE_URL/);
+  for (const status of [400, 404, 422, 500]) {
+    calls = 0;
+    globalThis.fetch = async () => { calls++; return new Response('private upstream detail', { status }); };
+    await assert.rejects(synthesizeSpeech('测试。', 2), status === 500 ? /HTTP 500/ : /TTS_BASE_URL/);
+    assert.equal(calls, 1);
+  }
+});
+
+test('local TTS recovers from temporary busy responses within one synthesis deadline', async t => {
+  const originalTimeout = AbortSignal.timeout;
+  const timeout = t.mock.method(AbortSignal, 'timeout', (milliseconds: number) => {
+    assert.equal(milliseconds, 120000); return originalTimeout(milliseconds);
+  });
+  const attempts: RequestInit[] = []; let canceledBodies = 0;
+  mockFetch(t, async (_url, init) => {
+    attempts.push(init!);
+    if (attempts.length <= 2) {
+      return new Response(new ReadableStream({ cancel() { canceledBodies++; } }), { status: attempts.length === 1 ? 503 : 429 });
+    }
+    return new Response(wav(), { headers: { 'Content-Type': 'audio/wav' } });
+  });
+  assert.deepEqual(await synthesizeSpeech('先看票型。', 2), wav());
+  assert.equal(attempts.length, 3); assert.equal(canceledBodies, 2);
+  assert.equal(timeout.mock.calls.length, 1);
+  for (const attempt of attempts) {
+    assert.equal(attempt.body, attempts[0].body);
+    assert.equal(attempt.signal, attempts[0].signal);
+    assert.equal(attempt.cache, 'no-store');
+  }
+});
+
+test('stopping playback cancels a busy wait without issuing another synthesis', async t => {
+  const controller = new AbortController(); let calls = 0;
+  let busyHandled!: () => void; const waiting = new Promise<void>(resolve => { busyHandled = resolve; });
+  mockFetch(t, async () => {
+    calls++; return new Response(new ReadableStream({ cancel() { busyHandled(); } }), { status: 503 });
+  });
+  const result = assert.rejects(synthesizeSpeech('测试。', 2, controller.signal), { name: 'AbortError' });
+  await waiting; await new Promise<void>(resolve => setImmediate(resolve)); controller.abort();
+  await result; assert.equal(calls, 1);
+});
+
+test('a persistently busy model stops waiting at the overall synthesis deadline', async t => {
+  const deadline = new AbortController(); let calls = 0;
+  const timeout = t.mock.method(AbortSignal, 'timeout', (milliseconds: number) => {
+    assert.equal(milliseconds, 120000); return deadline.signal;
+  });
+  let busyHandled!: () => void; const waiting = new Promise<void>(resolve => { busyHandled = resolve; });
+  mockFetch(t, async () => {
+    calls++; return new Response(new ReadableStream({ cancel() { busyHandled(); } }), { status: 503 });
+  });
+  const result = assert.rejects(synthesizeSpeech('测试。', 2), /本地配音.*超时/);
+  await waiting; await new Promise<void>(resolve => setImmediate(resolve));
+  deadline.abort(new DOMException('Timed out', 'TimeoutError'));
+  await result; assert.equal(calls, 1); assert.equal(timeout.mock.calls.length, 1);
 });
 
 test('local TTS rejects non-WAV, truncated and oversized audio', async t => {
