@@ -1,0 +1,23 @@
+{
+  "chat": {
+    "ok": true,
+    "model": "glm-5.3-flash",
+    "elapsedMs": 1911,
+    "speech": "第一天大家都没有查验信息，我不会轻易给任何人定性，希望大家也别急着站边，先听发言再判断。",
+    "usage": {
+      "completion_tokens": 30,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "prompt_tokens": 59,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 89
+    }
+  },
+  "tts": {
+    "ok": false,
+    "error": "HTTP 429: 1113 余额不足或无可用资源包,请充值。"
+  }
+}

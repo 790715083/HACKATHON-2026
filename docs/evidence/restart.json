@@ -1,0 +1,11 @@
+{
+  "productionRestart": true,
+  "sameGame": true,
+  "sameRevision": true,
+  "sameQueue": true,
+  "sameEvents": true,
+  "configured": true,
+  "day": 1,
+  "revision": 21,
+  "paused": true
+}
