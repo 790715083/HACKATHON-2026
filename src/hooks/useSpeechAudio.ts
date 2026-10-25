@@ -23,20 +23,28 @@ export function useSpeechAudio(game: PlayerView | null, enabled: boolean, suspen
     while(queue.current.length&&v===version.current&&enabledRef.current&&!suspendedRef.current&&!blocked.current) {
       const event=queue.current.shift()!; setPending(queue.current.length);
       const controller=new AbortController(); request.current=controller;
-      let url='';
       try {
-        const res=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gameId.current,eventId:event.id}),signal:controller.signal});
-        if(!res.ok) {const data=await res.json().catch(()=>({}));throw new Error(data.error||'配音暂时不可用，请稍后重试。');}
-        const blob=await res.blob();
-        if(v!==version.current)break;
-        url=URL.createObjectURL(blob); const player=new Audio(url); audio.current=player;
-        await new Promise<void>((resolve,reject)=>{
-          player.onended=()=>resolve();player.onerror=()=>reject(new Error('音频播放失败，请点击重播。'));
-          player.play().then(()=>{if(v===version.current)setPlayingEvent(event);}).catch(()=>reject(new Error('浏览器暂未允许声音播放，请点击重播。')));
-        });
+        let chunks=1;
+        for(let chunkIndex=0;chunkIndex<chunks;chunkIndex++) {
+          if(v!==version.current||controller.signal.aborted)break;
+          const res=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gameId:gameId.current,eventId:event.id,chunkIndex}),signal:controller.signal});
+          if(!res.ok) {const data=await res.json().catch(()=>({}));throw new Error(data.error||'配音暂时不可用，请稍后重试。');}
+          const count=Number(res.headers.get('X-Audio-Chunks')??1);
+          if(!Number.isInteger(count)||count<1||count>32)throw new Error('配音段落无效，请重试。');
+          chunks=count;
+          const blob=await res.blob();
+          if(v!==version.current)break;
+          const url=URL.createObjectURL(blob); const player=new Audio(url); audio.current=player;
+          try {
+            await new Promise<void>((resolve,reject)=>{
+              player.onended=()=>resolve();player.onerror=()=>reject(new Error('音频播放失败，请点击重播。'));
+              player.play().then(()=>{if(v===version.current)setPlayingEvent(event);}).catch(()=>reject(new Error('浏览器暂未允许声音播放，请点击重播。')));
+            });
+          } finally {URL.revokeObjectURL(url);if(v===version.current)audio.current=null;}
+        }
       } catch(e) {
         if(!controller.signal.aborted&&v===version.current) {setError(e instanceof Error?e.message:'配音失败');blocked.current=true;queue.current=[];setPending(0);}
-      } finally {if(url)URL.revokeObjectURL(url);if(v===version.current){audio.current=null;setPlayingEvent(null);}}
+      } finally {if(v===version.current){audio.current=null;setPlayingEvent(null);}}
     }
     if(v===version.current) {active.current=false;setPlayingEvent(null);}
   },[]);

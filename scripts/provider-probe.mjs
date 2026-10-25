@@ -5,6 +5,8 @@ import { readSecret } from './read-secret.mjs';
 const key = await readSecret();
 const base = process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4';
 const headers = { Authorization: `Bearer ${key}` };
+const ttsBase = (process.env.TTS_BASE_URL || 'http://127.0.0.1:8880/v1').replace(/\/+$/, '');
+const ttsModel = process.env.TTS_MODEL || 'kokoro-v1.1-zh';
 const report = {};
 await mkdir('.data/audit', { recursive: true });
 async function checked(response) {
@@ -27,11 +29,11 @@ const results = await Promise.allSettled([
     report.chat = { ok: true, model: data.model, elapsedMs: Date.now() - started, speech: parsed.speech, usage: data.usage };
   })(),
   (async () => {
-    const r = await checked(await fetch(`${base}/audio/speech`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'glm-tts', input: '我是三号玩家。预言家的查验和昨天的投票记录，应该结合起来分析。', voice: 'xiaochen', response_format: 'wav' }), signal: AbortSignal.timeout(90000) }));
+    const r = await checked(await fetch(`${ttsBase}/audio/speech`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: ttsModel, input: '我是三号玩家。预言家的查验和昨天的投票记录，应该结合起来分析。', voice: 'zf_002', response_format: 'wav', stream: false }), signal: AbortSignal.timeout(120000) }));
     const audio = Buffer.from(await r.arrayBuffer());
     if (audio.toString('ascii', 0, 4) !== 'RIFF') throw new Error(`Expected WAV, got ${r.headers.get('content-type')}, ${audio.length} bytes`);
     await writeFile('.data/audit/provider-voice.wav', audio);
-    report.tts = { ok: true, model: 'glm-tts', bytes: audio.length };
+    report.tts = { ok: true, provider: 'local', model: ttsModel, bytes: audio.length };
     const form = new FormData(); form.set('model', 'glm-asr-2512'); form.set('file', new Blob([audio], { type: 'audio/wav' }), 'speech.wav'); form.set('stream', 'false');
     const transcript = await (await checked(await fetch(`${base}/audio/transcriptions`, { method: 'POST', headers, body: form, signal: AbortSignal.timeout(90000) }))).json();
     if (typeof transcript.text !== 'string' || !transcript.text) throw new Error('ASR response missing text');

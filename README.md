@@ -4,10 +4,19 @@
 
 ## 本地运行
 
-需要 Node.js 22+、pnpm 11 和智谱标准模型 API Key。
+需要 Node.js 22+、pnpm 11、Python 3.12+ 和智谱标准模型 API Key。AI 配音使用本地 Kokoro 中文模型，文本对局与录音识别使用智谱。
 
 ```sh
 pnpm install
+# 首次安装配音依赖和模型（约 140 MiB 模型下载）：
+pnpm tts:setup
+# 在单独的终端运行，保持服务开启：
+pnpm tts:start
+```
+
+再打开一个终端启动游戏：
+
+```sh
 # 在 zsh 中隐式输入密钥，不会写入命令历史或源码：
 read -rs "ZHIPU_API_KEY?请输入智谱 API Key："
 export ZHIPU_API_KEY
@@ -23,8 +32,11 @@ pnpm dev
 | `ZHIPU_API_KEY` | 必填 | 仅服务端使用的标准 API 凭据 |
 | `ZHIPU_BASE_URL` | `https://open.bigmodel.cn/api/paas/v4` | 智谱服务地址 |
 | `ZHIPU_CHAT_MODEL` | `glm-5.3-flash` | 发言、行动与复盘 |
-| `ZHIPU_TTS_MODEL` | `glm-tts` | AI 人物配音 |
 | `ZHIPU_STT_MODEL` | `glm-asr-2512` | 玩家录音转写 |
+| `TTS_BASE_URL` | `http://127.0.0.1:8880/v1` | 仅服务端连接的本地配音地址 |
+| `TTS_MODEL` | `kokoro-v1.1-zh` | 本地中文配音模型 |
+
+本地 TTS 使用 sherpa-onnx 在 CPU 上运行 Kokoro v1.1-zh INT8，无需 GPU、Docker 或配音 API Key。模型和 Python 虚拟环境保存在忽略的 `.data/tts/`，下载完成后合成过程离线运行。八名 AI 各自保持固定的中文音色。详细部署、验证和故障处理见 [本地 TTS](docs/LOCAL_TTS.md)。
 
 ## 怎么玩
 
@@ -71,6 +83,6 @@ pnpm start
 pnpm audit:live
 ```
 
-`node scripts/provider-probe.mjs` 可通过 stdin 接收 Key 并探测文本、配音及识别；标准输入必须保持打开。模型调用与语音按智谱实际用量计费。
+`pnpm tts:probe` 不需要 Key，可验证本地中文多音色合成并输出 WAV。`node scripts/provider-probe.mjs` 可通过 stdin 接收 Key，联合探测智谱文本、本地配音及智谱识别；标准输入必须保持打开，并先启动本地 TTS。文本模型和语音识别按智谱实际用量计费，TTS 在本机合成。
 
 本次实现的具体检查结果及已知限制见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。

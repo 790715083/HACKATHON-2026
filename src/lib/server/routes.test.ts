@@ -3,6 +3,10 @@ import test from 'node:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
+import { applyAction, createGame, getNextTurn } from '@/lib/game/engine';
+import { readGame, saveGame, saveSession, SESSION_COOKIE } from './store';
+import { splitSpeech } from './speech';
 import { GET as getGame, POST as create } from '@/app/api/game/route';
 import { POST as act } from '@/app/api/game/actions/route';
 import { POST as advance } from '@/app/api/game/advance/route';
@@ -46,4 +50,30 @@ test('pause cancels an in-flight AI call and preserves its uncommitted turn for 
     assert.deepEqual(paused.events, initial.events); await reading;
     const recovered = (await (await getGame(request('game', undefined, cookie))).json()).game as PlayerView; assert.equal(recovered.paused, true); assert.equal(recovered.revision, paused.revision);
   } finally { globalThis.fetch = originalFetch; if (previousDir === undefined) delete process.env.MOONLIT_DATA_DIR; else process.env.MOONLIT_DATA_DIR = previousDir; if (previousKey === undefined) delete process.env.ZHIPU_API_KEY; else process.env.ZHIPU_API_KEY = previousKey; await rm(directory, { recursive: true, force: true }); }
+});
+
+test('TTS routes synthesize only committed text, expose all chunks and reuse the audio cache', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'moonlit-tts-')); const previousDir = process.env.MOONLIT_DATA_DIR; const originalFetch = globalThis.fetch;
+  process.env.MOONLIT_DATA_DIR = directory;
+  try {
+    let state = createGame({ id: randomUUID(), preferredRole: 'werewolf' }); const turn = getNextTurn(state)!;
+    const text = '先看票型，再判断发言。'.repeat(55);
+    state = applyAction(state, { turnId: turn.id, actorSeat: turn.actorSeat, kind: turn.kind, text });
+    const event = state.events.find(item => item.text === text)!;
+    await saveGame(state); const session = randomUUID(); await saveSession(session, state.id); const cookie = `${SESSION_COOKIE}=${session}`;
+    const bytes = Buffer.alloc(46); bytes.write('RIFF'); bytes.writeUInt32LE(38, 4); bytes.write('WAVE', 8);
+    bytes.write('fmt ', 12); bytes.writeUInt32LE(16, 16); bytes.writeUInt16LE(1, 20); bytes.writeUInt16LE(1, 22);
+    bytes.writeUInt32LE(24000, 24); bytes.writeUInt32LE(48000, 28); bytes.writeUInt16LE(2, 32); bytes.writeUInt16LE(16, 34); bytes.write('data', 36); bytes.writeUInt32LE(2, 40);
+    const spoken: string[] = []; const chunks = splitSpeech(text); assert.ok(chunks.length > 1);
+    globalThis.fetch = async (_url, init) => { spoken.push(JSON.parse(init?.body as string).input); return new Response(bytes, { headers: { 'Content-Type': 'audio/wav' } }); };
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const response = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex, text: '不能由客户端注入的其他文本' }, cookie));
+      assert.equal(response.status, 200); assert.equal(response.headers.get('X-Audio-Chunks'), String(chunks.length));
+      assert.equal(response.headers.get('Cache-Control'), 'private, no-store'); assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
+    }
+    const cached = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex: 0 }, cookie)); assert.equal(cached.status, 200);
+    const invalid = await tts(request('tts', { gameId: state.id, eventId: event.id, chunkIndex: chunks.length }, cookie)); assert.equal(invalid.status, 400);
+    const unsigned = await tts(request('tts', { gameId: state.id, eventId: event.id })); assert.equal(unsigned.status, 401);
+    assert.deepEqual(spoken, chunks); assert.deepEqual(await readGame(state.id), state);
+  } finally { globalThis.fetch = originalFetch; if (previousDir === undefined) delete process.env.MOONLIT_DATA_DIR; else process.env.MOONLIT_DATA_DIR = previousDir; await rm(directory, { recursive: true, force: true }); }
 });

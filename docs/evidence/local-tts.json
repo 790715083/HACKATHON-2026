@@ -1,0 +1,135 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-25T03:24:26.921Z",
+  "model": "kokoro-v1.1-zh",
+  "text": "我是三号玩家。预言家的查验和昨天的投票记录，应该结合起来分析。",
+  "samples": [
+    {
+      "seat": 0,
+      "elapsedMs": 5728,
+      "bytes": 332328,
+      "duration": 6.922583333333334,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 332284,
+      "file": ".data/audit/local-tts-seat-0.wav"
+    },
+    {
+      "seat": 2,
+      "elapsedMs": 4661,
+      "bytes": 326678,
+      "duration": 6.804875,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 326634,
+      "file": ".data/audit/local-tts-seat-2.wav"
+    },
+    {
+      "seat": 3,
+      "elapsedMs": 4877,
+      "bytes": 338304,
+      "duration": 7.047083333333333,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 338260,
+      "file": ".data/audit/local-tts-seat-3.wav"
+    },
+    {
+      "seat": 4,
+      "elapsedMs": 4862,
+      "bytes": 376124,
+      "duration": 7.835,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 376080,
+      "file": ".data/audit/local-tts-seat-4.wav"
+    },
+    {
+      "seat": 5,
+      "elapsedMs": 4172,
+      "bytes": 327462,
+      "duration": 6.821208333333334,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 327418,
+      "file": ".data/audit/local-tts-seat-5.wav"
+    },
+    {
+      "seat": 6,
+      "elapsedMs": 4661,
+      "bytes": 360586,
+      "duration": 7.511291666666667,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 360542,
+      "file": ".data/audit/local-tts-seat-6.wav"
+    },
+    {
+      "seat": 7,
+      "elapsedMs": 4517,
+      "bytes": 312710,
+      "duration": 6.513875,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 312666,
+      "file": ".data/audit/local-tts-seat-7.wav"
+    },
+    {
+      "seat": 8,
+      "elapsedMs": 4946,
+      "bytes": 389994,
+      "duration": 8.123958333333333,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 389950,
+      "file": ".data/audit/local-tts-seat-8.wav"
+    },
+    {
+      "seat": 9,
+      "elapsedMs": 4584,
+      "bytes": 343398,
+      "duration": 7.153208333333334,
+      "sampleRate": 24000,
+      "channels": 1,
+      "dataBytes": 343354,
+      "file": ".data/audit/local-tts-seat-9.wav"
+    }
+  ],
+  "runtime": {
+    "ttsHealth": {
+      "status": "ok",
+      "model": "kokoro-v1.1-zh",
+      "device": "cpu",
+      "voices": 10
+    },
+    "gameModelConfiguration": {
+      "chat": "glm-5.3-flash",
+      "tts": "kokoro-v1.1-zh",
+      "stt": "glm-asr-2512"
+    },
+    "chatConfigured": true,
+    "installationMiB": 295
+  },
+  "validation": {
+    "typescriptTestsPassed": 42,
+    "pythonServiceTestsPassed": 5,
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "browserReplay": "passed",
+    "browserStop": "passed",
+    "browserConsoleErrors": 0,
+    "browserConsoleWarnings": 0,
+    "browserMutePreferenceRestored": true,
+    "browserMultiChunkPlayback": "not exercised; server chunk contract tested",
+    "realASR": "not exercised"
+  },
+  "saveIntegrity": {
+    "filesChecked": 6,
+    "allUnchanged": true
+  },
+  "modelAsset": {
+    "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_1.tar.bz2",
+    "sha256": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6"
+  },
+  "screenshot": "../screenshots/local-tts-playback.png"
+}
