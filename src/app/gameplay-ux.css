@@ -1,0 +1,291 @@
+/* Reading and decision controls share one scale across the table and its overlays. */
+.app-shell {
+  --reading-size: 16px;
+  --history-size: 15px;
+  --label-size: 13px;
+  overflow: clip;
+}
+.app-shell.text-large { --reading-size: 18px; --history-size: 17px; --label-size: 15px; }
+.topbar { height: 84px; padding-inline: 44px; }
+.header-right { gap: 14px; }
+.icon-button { min-width: 40px; min-height: 40px; }
+.text-size-button[aria-pressed="true"] { color: var(--gold-bright); background: #c9b17e14; }
+select { color: var(--ink); background: #10232b; border: 1px solid #536b70; border-radius: 3px; font: inherit; }
+select:focus-visible, summary:focus-visible, .history-scroll:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+option { background: #14282f; }
+
+/* The entry action stays close to the premise, including at laptop heights. */
+.lobby { padding: 28px 44px 0; min-height: calc(100svh - 84px); column-gap: 36px; }
+.lobby-copy { max-width: 510px; }
+.lobby h1 { font-size: clamp(44px, 4.4vw, 64px); line-height: 1.18; margin-top: 16px; }
+.hero-description { font-size: 14px; line-height: 1.8; margin-top: 14px; }
+.lobby-features { margin-top: 16px; font-size: 12px; gap: 19px; }
+.setup-panel { margin-top: 22px; padding: 17px 20px 13px; }
+.setup-panel-heading { margin-bottom: 12px; }
+.name-label, .role-select-label { font-size: 13px; }
+.name-label { margin-bottom: 7px; }
+.name-field { height: 42px; }
+.name-field input { font-size: 16px; }
+.field-note { font-size: 11px; color: #9bacac; }
+.role-select-label { margin-top: 13px; }
+.role-select-label > span + span { font-size: 11px; color: #9bacac; }
+.role-options > button { font-size: 12px; min-height: 58px; padding: 8px 0; gap: 6px; }
+.selected-role-hint { font-size: 12px; line-height: 1.7; margin-top: 10px; color: #c1ceca; }
+.start-button { height: 46px; margin-top: 14px; font-size: 15px; }
+.setup-note { font-size: 11px; margin-top: 11px; }
+.continue-button { font-size: 13px; min-height: 40px; }
+.lobby-art { min-height: 570px; }
+.lobby-footer { margin-top: 26px; padding-block: 18px; }
+.configuration-note { font-size: 12px; line-height: 1.8; }
+
+.game-layout { padding-inline: 44px; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; }
+.game-heading { padding-top: 22px; }
+.game-heading h1 { font-size: 23px; }
+.table-area { height: clamp(410px, 54svh, 560px); }
+.table-center p { font-size: 13px; }
+.player-info { position: relative; }
+.player-info > b { font-size: 13px; }
+.player-info > span { font-size: 11px; }
+.seat-number { font-size: 13px; min-width: 26px; padding: 3px 4px; background: #0b1c23e8; color: #e5dfc8; }
+.player-card.is-unavailable { border-style: dashed; }
+.player-card.is-targetable:hover { border-color: var(--gold-bright); }
+.seat-note { position: absolute; right: 5px; top: 5px; font-size: 10px; line-height: 1; padding: 3px; font-style: normal; border: 1px solid currentColor; }
+.seat-note.suspect { color: #e6ae98; }
+.seat-note.trusted { color: #a9d1bd; }
+.speech-focus { padding: 18px; }
+.speech-focus-head > b { font-size: 14px; }
+.speech-focus-head > span { font-size: 12px; }
+.speech-focus-body p { font-size: var(--reading-size); line-height: 1.85; color: #d5ded8; max-height: 240px; }
+.action-panel { padding: 20px; scroll-margin-top: 20px; background: #14282ff5; }
+.action-title h3 { font-size: 16px; line-height: 1.6; }
+.identity-chip small { font-size: 10px; }
+.identity-chip b { font-size: 15px; }
+.speech-input textarea { font-size: var(--reading-size); line-height: 1.8; min-height: 130px; }
+.input-note, .record-button, .waiting-note { font-size: var(--label-size); }
+.waiting-note { line-height: 1.8; color: #becbc6; }
+.primary-button.small, .secondary-button.small { font-size: 14px; min-height: 44px; padding: 10px 15px; }
+.target-options { gap: 9px; }
+.target-options > button { font-size: 14px; min-height: 44px; padding: 10px 12px; }
+.target-options > button > span { font-size: 15px; }
+.target-footer { align-items: center; gap: 18px; }
+.target-summary { font-size: var(--label-size); line-height: 1.8; color: #d3dcd6; flex: 1; }
+.target-footer > div { flex-shrink: 0; }
+.potion-options > button { min-height: 84px; }
+.potion-options b { font-size: 14px; }
+.potion-options small { font-size: 12px; line-height: 1.7; }
+.potion-save svg, .decision-safe .target-summary { color: #afd5c0; }
+.potion-save.selected { border-color: #98c5b1; background: #98c5b112; }
+.potion-poison svg, .decision-danger .target-summary { color: #efb9a7; }
+.potion-poison.selected, .primary-button.decision-danger { border: 1px solid #cc9782; background: #593b35; color: #f5d6c5; }
+.primary-button.decision-safe { border: 1px solid #93bda5; background: #35594c; color: #e0eddd; }
+.action-feedback { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 11px 13px; border: 1px solid #9fc1aa55; background: #9fc1aa0a; color: #c3e0c9; font-size: var(--label-size); line-height: 1.6; }
+.action-anchor { height: 1px; }
+.mobile-action-dock { display: none; }
+.notice, .notice b, .notice > button, .inline-error { font-size: var(--label-size); line-height: 1.8; }
+.modal-intro, .rules-content > p, .rules-role-list p, .role-reveal p, .player-detail-copy p { font-size: var(--history-size); }
+.rules-role-list b, .rules-lineup { font-size: 14px; }
+.modal { max-height: 88svh; }
+.unavailable-reason { color: #e8bfa6 !important; border: 1px dashed #af9075; padding: 10px; margin-top: 15px; }
+
+/* History owns its scroll position. Filters and new-message controls stay outside it. */
+.history-panel { height: calc(100svh - 84px); padding-left: 22px; min-height: 0; }
+.history-top { padding-top: 25px; }
+.history-tabs { gap: 20px; }
+.history-tabs > button { font-size: 14px; min-height: 44px; }
+.history-filters { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.history-filters label { display: grid; gap: 6px; flex: 1; min-width: 0; font-size: 12px; color: #b6c5bf; }
+.history-filters label:nth-child(2) { flex: 1.6; }
+.history-filters select { min-width: 0; width: 100%; min-height: 40px; padding: 7px 5px; font-size: 13px; }
+.history-filters .text-button { width: 100%; justify-content: flex-end; font-size: 12px; min-height: 28px; }
+.history-scroll { overscroll-behavior: contain; overflow-anchor: none; scroll-behavior: auto; }
+.history-message { padding-block: 20px; }
+.message-top { gap: 8px; flex-wrap: wrap; }
+.message-top > b { font-size: 13px; }
+.message-top > small { font-size: 11px; }
+.message-seat { width: 27px; height: 27px; font-size: 14px; }
+.history-message > p { padding-left: 0; font-size: var(--history-size); line-height: 1.9; color: #cfdbd5; }
+.history-system { font-size: 13px; line-height: 1.9; color: #b4c4bc; }
+.history-system > p { font-size: var(--label-size); }
+.history-foot { font-size: 11px; padding-block: 17px; }
+.history-empty p { font-size: 14px; line-height: 1.8; }
+.history-empty small { font-size: 12px; line-height: 1.8; }
+.history-latest { display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; width: 100%; min-height: 44px; border: 1px solid #b3a67c70; background: #263b3d; color: #e0cfa5; font-size: 13px; }
+.vote-round h3 { font-size: 17px; }
+.vote-round > .vote-tally-label { font-size: 12px; color: #b5c6bd; line-height: 1.8; margin-block: 12px; }
+.vote-tally { display: grid; gap: 8px; }
+.vote-tally > div { display: grid; grid-template-columns: 1fr auto; gap: 5px; padding: 10px 12px; background: #0d202777; border-left: 2px solid #b7a16d; font-size: 14px; }
+.vote-tally b { font-weight: 500; color: #dcc792; }
+.vote-tally small { grid-column: 1 / -1; font-size: 12px; color: #b1c4bb; overflow-wrap: anywhere; }
+.ballot-details { margin-top: 14px; }
+.ballot-details summary { padding-block: 10px; cursor: pointer; font-size: 13px; color: #d1c298; }
+.ballot { font-size: 13px; padding: 9px; }
+.ballot-match { background: #b8a16c16; border-left: 2px solid #d0b87c; }
+.vote-round > .vote-outcome { font-size: 14px; line-height: 1.8; color: #d6c99f; }
+.personal-notes { padding: 13px 0; border-bottom: 1px solid var(--line); text-align: left; }
+.history-note-editor { border-bottom: 1px solid var(--line); margin-bottom: 5px; }
+.history-note-editor > summary { cursor: pointer; padding-block: 12px; font-size: 13px; line-height: 1.8; color: #d3c59b; }
+.history-note-editor > summary > span { display: block; margin-left: 15px; font-size: 11px; color: #abbfb3; }
+.history-note-editor .personal-notes { border: 0; }
+.personal-notes-label { font-size: 13px !important; color: #d0c39d !important; line-height: 1.7 !important; }
+.personal-notes-label > span { display: block; font-size: 11px; color: #a9bab3; }
+.note-stance { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+.note-stance > button { min-height: 40px; padding: 7px 13px; border: 1px solid #607876; font-size: 13px; }
+.note-stance > button.chosen { border-color: #d6ba83; background: #bfa07118; }
+.note-stance > button.suspect { color: #efbaa5; }
+.note-stance > button.trusted { color: #b0d6c1; }
+.note-stance label { display: grid; gap: 5px; flex: 1; font-size: 11px; color: #b8c7bf; }
+.note-stance select { min-height: 40px; width: 100%; font-size: 13px; padding: 6px; }
+.message-note { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; color: #ddc797; font-size: 11px; line-height: 1.7; margin-top: 9px; }
+.message-note > span { color: #a5b7ae; }
+
+@media (min-width: 1550px) {
+  .lobby { padding-top: 45px; }
+  .lobby h1 { font-size: 70px; }
+  .lobby-art { min-height: 670px; }
+  .game-layout { grid-template-columns: minmax(0, 1fr) 370px; gap: 35px; }
+  .table-area { height: 500px; }
+}
+@media (min-width: 701px) {
+  .player-card { display: flex; align-items: center; width: 132px; min-height: 78px; }
+  .player-portrait { width: 42px; height: 54px; flex: 0 0 42px; aspect-ratio: auto; margin: 10px 0 9px 8px; overflow: visible; }
+  .player-portrait > .portrait { width: 100%; height: 100%; }
+  .player-info { min-width: 0; flex: 1; padding: 8px; }
+  .player-info > b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-info > span { font-size: 10px; }
+  .seat-number { top: -7px; left: -6px; font-size: 12px; padding: 1px 3px; min-width: 23px; }
+  .dead-overlay > span { display: none; }
+  .dead-overlay svg { width: 20px; }
+  .player-card.is-speaking::after { top: -11px; font-size: 9px; }
+}
+@media (max-width: 1199px) {
+  .topbar, .game-layout { padding-inline: 28px; }
+  .lobby { padding-inline: 28px; column-gap: 24px; }
+  .lobby h1 { font-size: 48px; }
+  .lobby-features { font-size: 11px; gap: 14px; }
+  .game-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; }
+  .player-card { width: 132px; }
+  .player-portrait { height: 54px; }
+  .player-info > b { font-size: 12px; }
+  .player-info > span { font-size: 10px; }
+  .target-footer { align-items: stretch; flex-direction: column; gap: 12px; }
+  .target-footer > div { align-self: flex-end; }
+  .game-heading h1 { font-size: 20px; }
+}
+@media (max-width: 960px) {
+  .game-layout { grid-template-columns: minmax(0, 1fr); }
+  .history-panel.is-open { padding: 20px 20px 0; width: min(390px, 94vw); height: 100svh; }
+  .history-top { padding-top: 0; }
+  .lobby { grid-template-columns: 1fr .8fr; }
+  .lobby h1 { font-size: 46px; }
+  .lobby-art { min-height: 550px; }
+}
+@media (max-width: 700px) {
+  .topbar { height: 76px; padding-inline: 16px; }
+  .brand { gap: 8px; }
+  .brand b { font-size: 18px; letter-spacing: 2px; }
+  .brand small { font-size: 6px; letter-spacing: 1.7px; }
+  .brand-mark { width: 28px; }
+  .header-right, .is-game .header-right { gap: 3px; }
+  .icon-button, .is-game .icon-button, .is-game .rules-button { min-width: 40px; min-height: 44px; padding: 8px; }
+  .is-game .phase-pill { display: none; }
+  .lobby { display: block; padding: 24px 20px 0; min-height: calc(100svh - 76px); }
+  .lobby h1 { font-size: 43px; line-height: 1.18; margin-top: 14px; }
+  .lobby-kicker { font-size: 10px; letter-spacing: 1.5px; }
+  .hero-description { font-size: 13px; margin-top: 12px; }
+  .lobby-features { margin-top: 14px; font-size: 10px; gap: 13px; }
+  .setup-panel { margin-top: 19px; padding: 16px; }
+  .role-select-label > span + span { font-size: 10px; }
+  .role-options { gap: 5px; }
+  .role-options > button { font-size: 11px; min-height: 58px; }
+  .selected-role-hint { font-size: 12px; }
+  .start-button { font-size: 15px; height: 46px; }
+  .lobby-footer { margin-top: 22px; }
+  .game-layout { padding: 0 16px calc(100px + env(safe-area-inset-bottom)); }
+  .game-heading { padding-top: 18px; }
+  .game-heading h1 { font-size: 18px; line-height: 1.5; }
+  .game-heading-meta > span { font-size: 14px; }
+  .game-heading-meta small { font-size: 10px; }
+  .game-heading-meta > .text-button { min-height: 32px; min-width: 32px; }
+  .table-area { height: auto; margin-top: 12px; padding-top: 76px; }
+  .table-rings { display: none; }
+  .table-center, .phase-ended .table-center { top: 0; height: 66px; }
+  .table-center > .center-symbol, .table-center > .eyebrow, .table-center > .center-divider { display: none; }
+  .table-center h2 { font-size: 23px; letter-spacing: 3px; margin-top: 0; }
+  .table-center p { font-size: 12px; line-height: 1.6; margin-top: 6px; }
+  .players-ring { gap: 8px; padding: 0; }
+  .player-card { display: flex; align-items: center; width: 100%; min-width: 0; min-height: 66px; animation: none; }
+  .player-portrait { width: 32px; height: 42px; flex: 0 0 32px; aspect-ratio: auto; margin: 9px 0 8px 6px; overflow: visible; }
+  .player-portrait > .portrait { position: static; width: 100%; height: 100%; object-fit: cover; }
+  .seat-number { top: -8px; left: -6px; font-size: 11px; min-width: 21px; padding: 1px 3px; z-index: 2; line-height: 1.5; }
+  .player-info { min-width: 0; min-height: 0; flex: 1; padding: 7px 4px 7px 6px; }
+  .player-info > b { font-size: 12px; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-info > b > small { font-size: 8px; margin-left: 3px; }
+  .player-info > span { font-size: 9px; gap: 3px; margin-top: 5px; white-space: nowrap; }
+  .player-info > span svg { width: 10px; }
+  .seat-note { right: 3px; top: -4px; font-size: 9px; padding: 1px 2px; background: #182b31; }
+  .dead-overlay { inset: 0; }
+  .dead-overlay svg { width: 16px; }
+  .dead-overlay > span { display: none; }
+  .player-card.is-speaking::after { content: ''; inset: auto 3px 3px auto; width: 5px; height: 5px; border-radius: 50%; background: #dfca95; }
+  .speaking-lines { bottom: 0; gap: 2px; height: 10px; }
+  .speaking-lines i { width: 2px; height: 9px; }
+  .speech-focus { margin-top: 16px; padding: 15px; gap: 10px; }
+  .speech-avatar { width: 32px; height: 37px; }
+  .speech-focus-head { flex-wrap: wrap; gap: 7px; }
+  .speech-focus-head > b { font-size: 14px; }
+  .speech-focus-head > span { font-size: 11px; }
+  .speech-focus-body p { font-size: var(--reading-size); line-height: 1.85; max-height: 220px; }
+  .action-panel { margin-top: 15px; padding: 15px; }
+  .action-title .eyebrow { font-size: 8px; }
+  .action-title h3 { font-size: 14px; line-height: 1.6; }
+  .identity-chip { min-width: 96px; }
+  .identity-chip small { font-size: 9px; }
+  .identity-chip b { font-size: 14px; }
+  .target-options { gap: 8px; }
+  .target-options > button { min-width: 90px; font-size: 13px; padding: 10px; }
+  .target-footer { align-items: stretch; gap: 12px; }
+  .target-footer > div { align-self: stretch; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+  .primary-button.small, .secondary-button.small { font-size: 14px; min-height: 44px; }
+  .potion-options { gap: 7px; }
+  .potion-options > button { padding: 12px 5px; min-height: 110px; }
+  .potion-options b { font-size: 13px; }
+  .potion-options small { font-size: 11px; line-height: 1.7; }
+  .speech-input textarea { font-size: var(--reading-size); min-height: 150px; }
+  .speech-controls { flex-wrap: wrap; gap: 12px; }
+  .record-button { min-height: 44px; font-size: 13px; }
+  .input-note { font-size: 12px; }
+  .waiting-note { font-size: 13px; line-height: 1.8; }
+  .mobile-action-dock { display: flex; position: fixed; bottom: 0; left: 0; right: 0; align-items: center; justify-content: space-between; gap: 12px; z-index: 18; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: #14282ff5; border-top: 1px solid #9eaa8955; box-shadow: 0 -8px 30px #07131960; backdrop-filter: blur(12px); }
+  .mobile-action-dock > div { display: grid; gap: 5px; min-width: 0; }
+  .mobile-action-dock > div > span { font-size: 11px; color: #d7c592; }
+  .mobile-action-dock > div > b { font-size: 13px; line-height: 1.5; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-action-dock > button { flex-shrink: 0; max-width: 58%; padding-inline: 12px; }
+  .history-top h2 { font-size: 23px; }
+  .history-filters select { min-height: 44px; font-size: 14px; }
+  .history-panel.is-open { padding: 18px 18px 0; }
+  .history-scroll { padding-top: 12px; }
+  .history-foot { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  .note-stance > button, .note-stance select { min-height: 44px; }
+  .modal { padding: 22px; }
+  .rules-role-list b, .rules-lineup { font-size: 13px; }
+  .game-footer { font-size: 10px; gap: 12px; padding-block: 20px; }
+  .game-footer .text-button { font-size: 12px; min-height: 40px; }
+  .phase-ended { padding-top: 112px; }
+  .phase-ended .table-center h2 { font-size: 21px; }
+  .final-review > p { font-size: var(--reading-size); line-height: 1.9; }
+}
+@media (max-width: 359px) {
+  .topbar { padding-inline: 10px; }
+  .brand-mark { display: none; }
+  .brand b { font-size: 17px; }
+  .lobby { padding-inline: 16px; }
+  .lobby h1 { font-size: 39px; }
+  .lobby-features { flex-wrap: wrap; gap: 8px 15px; }
+  .role-select-label > span + span { display: none; }
+  .game-layout { padding-inline: 12px; }
+  .players-ring { gap: 6px; }
+  .player-portrait { width: 26px; flex-basis: 26px; height: 34px; }
+  .player-info > b { font-size: 11px; }
+  .player-info > span { font-size: 8px; }
+  .mobile-action-dock { padding-inline: 12px; gap: 8px; }
+}

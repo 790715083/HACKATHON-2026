@@ -51,6 +51,8 @@ pnpm dev
 
 玩家可以打字，也可以每次录制最长 30 秒的语音。录音会编码为 WAV，识别结果放入草稿，确认后才作为发言提交。AI 配音可关闭、停止或重播；录音时停止配音以避免回声。
 
+右上角的文字大小按钮可以切换标准／放大字号，并记住选择。对局手记支持按天数、玩家回查发言与完整票型；展开“个人标记”可记录怀疑、信任和对方声称的身份。标记按对局保存在当前浏览器，只代表你的判断。翻阅旧记录时，新发言不会打断阅读，点击“回到最新”即可继续跟随。手机底部提供当前行动入口，投票、查验和用药会在确认按钮上显示具体目标。
+
 ## 状态与接口
 
 Next.js App Router / TypeScript / React / Tailwind CSS。规则和角色知识保存在 `src/lib/game`，服务端存储与模型适配位于 `src/lib/server`，界面只接收已过滤的真人视图。
@@ -86,3 +88,5 @@ pnpm audit:live
 `pnpm tts:probe` 不需要 Key，可验证本地中文多音色合成并输出 WAV。`node scripts/provider-probe.mjs` 可通过 stdin 接收 Key，联合探测智谱文本、本地配音及智谱识别；标准输入必须保持打开，并先启动本地 TTS。文本模型和语音识别按智谱实际用量计费，TTS 在本机合成。
 
 本次实现的具体检查结果及已知限制见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。
+
+布局、阅读和行动反馈改进的检查结果见 [交互改进验收](docs/GAMEPLAY_UX_VERIFICATION.md)。

@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-25",
+  "mode": "Production build; isolated synthetic game checkpoints; real GET/action routes; locally controlled SSE; no external model or voice calls",
+  "checks": {
+    "build": "passed",
+    "typecheck": "passed",
+    "tests": {
+      "passed": 49,
+      "failed": 0,
+      "seededReplayGames": 250,
+      "newPresentationTests": 7
+    },
+    "localTtsProtocolTests": {
+      "passed": 5,
+      "failed": 0
+    }
+  },
+  "largeTextViewportMeasurements": [
+    {
+      "height": 720,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 1280,
+      "speechFont": "18px",
+      "width": 1280
+    },
+    {
+      "height": 768,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 1024,
+      "speechFont": "18px",
+      "width": 1024
+    },
+    {
+      "height": 1024,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 768,
+      "speechFont": "18px",
+      "width": 768
+    },
+    {
+      "height": 844,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 390,
+      "speechFont": "18px",
+      "width": 390
+    },
+    {
+      "height": 740,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 320,
+      "speechFont": "18px",
+      "width": 320
+    },
+    {
+      "height": 1080,
+      "historyFont": "17px",
+      "overlappingSeats": [],
+      "scrollWidth": 1920,
+      "speechFont": "18px",
+      "width": 1920
+    }
+  ],
+  "standardText": {
+    "speakerPixels": 16,
+    "historyPixels": 15
+  },
+  "lobby": {
+    "buttonBottom": 677.1953125,
+    "buttonTop": 631.1953125,
+    "buttonVisible": true,
+    "height": 720,
+    "scrollWidth": 1280,
+    "scrollY": 0,
+    "selectedRole": "女巫",
+    "width": 1280
+  },
+  "history": {
+    "reviewScrollTopBefore": 4498.5,
+    "afterStreamedText": 4498.5,
+    "afterCommittedEvent": 4498.5,
+    "newRecordButton": "1 条新记录 · 回到最新",
+    "afterJumpScrollTop": 5515.5,
+    "afterJumpMaximum": 5515,
+    "round1BallotsAfterPlayerFilter": 9,
+    "highlightedBallotsForSeat5": 2
+  },
+  "actionsVerified": [
+    {
+      "kind": "vote",
+      "targetSeat": 5
+    },
+    {
+      "kind": "witch",
+      "use": "poison",
+      "targetSeat": 5
+    },
+    {
+      "kind": "seer",
+      "targetSeat": 3
+    },
+    {
+      "kind": "hunter",
+      "targetSeat": 5
+    },
+    {
+      "kind": "wolf_vote",
+      "targetSeat": 2
+    },
+    {
+      "kind": "pk_vote",
+      "targetSeat": null
+    },
+    {
+      "kind": "speech"
+    }
+  ],
+  "preferences": {
+    "fontRestoredAfterReload": true,
+    "notesRestoredAfterReload": true,
+    "notesSeparatedByGame": true
+  },
+  "drawer": {
+    "focusEnteredCloseButton": true,
+    "backTabWrappedToContent": true,
+    "escapeRestoredTrigger": true,
+    "bodyScrollRestored": true,
+    "closedAtDesktopBreakpoint": true
+  },
+  "baseCommit": "c3d89ee",
+  "rebasedBrowserSmoke": {
+    "mobileVoteTarget": 5,
+    "serverCheckpointVerified": true,
+    "historyDayFilter": 1,
+    "historySeatFilter": 5,
+    "persistedPersonalMark": "suspect",
+    "persistedClaim": "seer"
+  }
+}
