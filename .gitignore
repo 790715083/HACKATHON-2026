@@ -8,3 +8,5 @@ node_modules/
 coverage/
 .planning/
 artifacts/
+__pycache__/
+*.pyc

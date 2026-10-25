@@ -14,7 +14,7 @@ test('WAV validation bounds duration independently of file size or extension', (
 });
 test('speech splitting preserves every character within provider text limit', () => {
   const text = '先看票型。'.repeat(400) + '再看发言'; const chunks = splitSpeech(text);
-  assert.equal(chunks.join(''), text); assert.ok(chunks.every(chunk => chunk.length <= 900));
+  assert.equal(chunks.join(''), text); assert.ok(chunks.every(chunk => chunk.length <= 300));
 });
 test('ASR uses WAV bytes and model endpoint, parses final transcript only', async () => {
   const originalFetch = globalThis.fetch; const previousKey = process.env.ZHIPU_API_KEY; process.env.ZHIPU_API_KEY = 'test-only-key';

@@ -1,6 +1,7 @@
 import { modelConfiguration, providerFetch } from './model';
+import { localSpeech } from './local-tts';
 
-export function splitSpeech(text: string, limit = 900): string[] {
+export function splitSpeech(text: string, limit = 300): string[] {
   const result: string[] = []; let chunk = '';
   const sentences = text.match(/[^。！？!?；;\n]+[。！？!?；;\n]*/g) ?? [text];
   for (const sentence of sentences) {
@@ -36,11 +37,7 @@ export function wavMetadata(bytes: Uint8Array): { duration: number; sampleRate: 
 
 export async function synthesizeSpeech(text: string, seat: number, signal?: AbortSignal): Promise<Uint8Array> {
   if (!text.trim() || text.length > 1024) throw new Error('配音文本长度无效。');
-  const voices = ['xiaochen', 'tongtong', 'chuichui'];
-  const response = await providerFetch('audio/speech', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: modelConfiguration().tts, input: text, voice: voices[Math.abs(seat) % voices.length], speed: [0.94, 1.02, 0.98, 1.08][Math.abs(seat) % 4], response_format: 'wav', stream: false }) }, signal);
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength > 12 * 1024 * 1024 || bytes.byteLength < 44 || Buffer.from(bytes.subarray(0, 4)).toString('ascii') !== 'RIFF') throw new Error('智谱未返回可播放的 WAV 配音，请重试。');
-  return bytes;
+  return localSpeech(text, seat, signal);
 }
 
 export async function transcribeSpeech(bytes: Uint8Array, hotwords: string[] = [], signal?: AbortSignal): Promise<string> {

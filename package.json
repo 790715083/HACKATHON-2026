@@ -8,7 +8,11 @@
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/lib/game/*.test.ts src/lib/server/*.test.ts",
-    "audit:live": "tsx scripts/live-audit.ts"
+    "audit:live": "tsx scripts/live-audit.ts",
+    "tts:setup": "python3 scripts/setup-local-tts.py",
+    "tts:start": "node scripts/start-local-tts.mjs",
+    "tts:probe": "tsx scripts/local-tts-probe.ts",
+    "tts:test": "python3 -m unittest discover -s services/local-tts -p 'test_*.py'"
   },
   "dependencies": {
     "next": "^16.1.1",
