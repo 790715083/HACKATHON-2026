@@ -1,13 +1,13 @@
 /** Read a runtime credential without echoing it or writing it to disk. */
-export async function readSecret() {
+export async function readSecret({ allowEmpty = false, prompt = 'Ready for API credential on stdin (input hidden).\n' } = {}) {
   if (process.env.ZHIPU_API_KEY?.trim()) return process.env.ZHIPU_API_KEY.trim();
-  process.stdout.write('Ready for API credential on stdin (input hidden).\n');
+  process.stdout.write(prompt);
   if (!process.stdin.isTTY) {
     const { createInterface } = await import('node:readline');
     const lines = createInterface({ input: process.stdin, terminal: false });
     for await (const line of lines) {
       lines.close();
-      if (!line.trim()) throw new Error('API credential cannot be empty.');
+      if (!line.trim() && !allowEmpty) throw new Error('API credential cannot be empty.');
       return line.trim();
     }
     throw new Error('No credential received. Use a terminal or pipe a runtime credential on stdin.');
@@ -25,7 +25,7 @@ export async function readSecret() {
         if (character === '\u0003') { cleanup(); reject(new Error('Credential input canceled.')); return; }
         if (character === '\r' || character === '\n') {
           cleanup();
-          if (!value.trim()) reject(new Error('API credential cannot be empty.'));
+          if (!value.trim() && !allowEmpty) reject(new Error('API credential cannot be empty.'));
           else resolve(value.trim());
           return;
         }

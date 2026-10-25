@@ -6,6 +6,31 @@
 
 需要 Node.js 22+、pnpm 11、Python 3.12+ 和智谱标准模型 API Key。AI 配音使用本地 Kokoro 中文模型，玩家录音识别默认使用本地 SenseVoiceSmall INT8，文本对局使用智谱。识别也可显式切换到外部 API。
 
+### 一键启动（推荐）
+
+macOS 双击项目根目录的 `start.command`。macOS / Linux 也可在终端运行：
+
+```sh
+./start.sh
+# 已安装 pnpm 时也可以：
+pnpm local
+```
+
+脚本自动切换到项目目录，检查 Node.js 22+，安装项目依赖，首次安装本地 TTS / STT 运行时和模型，再启动三个服务。安装需要联网，语音模型共约 295 MiB 下载；已有完整模型会复用。未安装对应版本 pnpm 时，脚本通过 npm 临时运行项目锁定的 pnpm，不修改全局安装。首次安装语音仍需预先安装 Python 3.12+，可通过 `PYTHON_BIN` 指定解释器。
+
+启动时会按 Next.js 开发模式的规则读取 `.env.local` 等环境文件，进程环境变量优先。未配置 `ZHIPU_API_KEY` 时，终端会提示隐藏输入，密钥只用于当前进程，不写入文件或命令历史；直接回车可跳过并浏览首页和规则。也可自行将密钥保存在 Git 已忽略的 `.env.local` 中。
+
+服务就绪后自动打开浏览器。保持终端开启，按 **Ctrl+C** 统一停止本次启动的服务。已有且 `/health` 模型匹配的语音服务会被复用，退出时继续运行。网页端口已被占用时会提示改用空闲端口；自定义本机语音端口通过 `TTS_BASE_URL` / `STT_BASE_URL` 传给 Python 服务。选择 `STT_PROVIDER=zhipu` / `external` 后跳过本地识别安装与启动。自定义远程 TTS、HTTPS、IPv6 或非 `/v1` 路径的服务需自行启动。
+
+```sh
+PORT=3001 ./start.sh       # 网页使用其他空闲端口
+./start.sh --no-browser   # 不自动打开浏览器
+./start.sh --no-prompt    # 不询问密钥，适合非交互启动
+./start.sh --help
+```
+
+### 分别启动服务
+
 ```sh
 pnpm install
 # 首次安装语音模型（TTS 约 140 MiB、STT 约 155 MiB 下载）：
