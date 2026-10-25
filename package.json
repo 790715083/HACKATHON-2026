@@ -12,7 +12,11 @@
     "tts:setup": "python3 scripts/setup-local-tts.py",
     "tts:start": "node scripts/start-local-tts.mjs",
     "tts:probe": "tsx scripts/local-tts-probe.ts",
-    "tts:test": "python3 -m unittest discover -s services/local-tts -p 'test_*.py'"
+    "tts:test": "python3 -m unittest discover -s services/local-tts -p 'test_*.py'",
+    "stt:setup": "python3 scripts/setup-local-stt.py",
+    "stt:start": "node scripts/start-local-stt.mjs",
+    "stt:probe": "tsx scripts/local-stt-probe.ts",
+    "stt:test": "python3 -m unittest discover -s services/local-stt -p 'test_*.py'"
   },
   "dependencies": {
     "next": "^16.1.1",

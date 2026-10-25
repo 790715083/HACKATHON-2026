@@ -17,12 +17,12 @@ test('speech splitting preserves every character within provider text limit', ()
   assert.equal(chunks.join(''), text); assert.ok(chunks.every(chunk => chunk.length <= 300));
 });
 test('ASR uses WAV bytes and model endpoint, parses final transcript only', async () => {
-  const originalFetch = globalThis.fetch; const previousKey = process.env.ZHIPU_API_KEY; process.env.ZHIPU_API_KEY = 'test-only-key';
+  const originalFetch = globalThis.fetch; const previousKey = process.env.ZHIPU_API_KEY; const previousProvider = process.env.STT_PROVIDER; process.env.STT_PROVIDER = 'zhipu'; process.env.ZHIPU_API_KEY = 'test-only-key';
   globalThis.fetch = async (url, init) => {
     assert.match(String(url), /audio\/transcriptions$/); const form = init?.body as FormData;
     assert.equal(form.get('model'), 'glm-asr-2512'); assert.equal((form.get('file') as File).type, 'audio/wav'); assert.equal(form.get('stream'), 'false');
     return Response.json({ text: '我怀疑三号的发言。' });
   };
   try { assert.equal(await transcribeSpeech(wave(1), ['预言家']), '我怀疑三号的发言。'); }
-  finally { globalThis.fetch = originalFetch; if (previousKey === undefined) delete process.env.ZHIPU_API_KEY; else process.env.ZHIPU_API_KEY = previousKey; }
+  finally { globalThis.fetch = originalFetch; if (previousProvider === undefined) delete process.env.STT_PROVIDER; else process.env.STT_PROVIDER = previousProvider; if (previousKey === undefined) delete process.env.ZHIPU_API_KEY; else process.env.ZHIPU_API_KEY = previousKey; }
 });

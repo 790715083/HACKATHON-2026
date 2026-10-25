@@ -5,8 +5,9 @@
 ## 已通过
 
 - `pnpm typecheck`：无 TypeScript 错误。
-- `pnpm test`：42 项测试通过，其中包含 250 局完整的确定性回放（50 个种子 × 五种真人身份）。每一步都经过 JSON 存档恢复，并检查信息边界、存活与投票资格、药品消耗、死亡连锁和有界结束。
+- `pnpm test`：48 项测试通过，其中包含 250 局完整的确定性回放（50 个种子 × 五种真人身份）。每一步都经过 JSON 存档恢复，并检查信息边界、存活与投票资格、药品消耗、死亡连锁和有界结束。
 - `pnpm tts:test`：5 项本地服务测试通过，覆盖 HTTP 协议、音色目录、输入与格式边界、单次推理并发上限。
+- `pnpm stt:test`：6 项本地识别服务测试通过，覆盖 multipart、模型/格式、PCM/采样率/时长边界、来源检查与单次推理并发上限。
 - `pnpm build`：Next.js 生产构建成功，首页及五组 API 路由正常生成。
 - 服务端测试覆盖公开字段流式解析、隐藏信息过滤、非法模型输出重试上限、同源边界、会话隔离、重复操作幂等、过期状态拒绝、进行中请求取消、原子检查点和 WAV 格式／时长检查。
 - 实际浏览器检查覆盖规则与身份弹窗、狼人队友信息、私聊提交、目标选择、白天发言、AI 推进、暂停／恢复、刷新恢复、静音偏好以及移动端记录抽屉。
@@ -37,11 +38,22 @@
 
 证据：[本地多音色与重启报告](evidence/local-tts.json)、[浏览器播放截图](screenshots/local-tts-playback.png)。实际 WAV 与完整报告保存在本机忽略目录 `.data/audit/`，可通过 `pnpm tts:probe` 重新生成。部署说明见 [LOCAL_TTS.md](LOCAL_TTS.md)。
 
-## 语音识别验收限制
+## 本地 STT 实测
 
-语音识别仍调用智谱 `glm-asr-2512`。本次没有进行真实 ASR 转写及本机麦克风端到端验收；现有 WAV 校验与 ASR 协议的固定响应测试通过，不能据此认定真实识别服务可用。
+玩家语音识别默认改为本机 CPU 的 sherpa-onnx 2.0.0 + SenseVoiceSmall INT8。官方固定版本归档下载完成，经安装器固定 SHA-256 校验并解压；`pnpm stt:setup` 成功复用已安装模型和依赖。服务只监听 `127.0.0.1:8881`，无 STT Key 即可工作；本地出错不会自动上传到云端。
 
-此前云端 `glm-tts` 探测曾返回 HTTP 429／错误码 `1113`，现已由本地 TTS 替换。历史证据保留在 [provider-probe.json](evidence/provider-probe.json)。`node scripts/provider-probe.mjs` 现在会使用本地 TTS 生成样本，再验证智谱文本与识别，仍需通过隐藏 stdin 提供 Key。
+- 默认 `pnpm stt:probe` 使用模型附带的 16 kHz 中文公开样本：5.592 秒音频，本机一次识别耗时 261 ms。识别结果为“开饭时间早上9点至下午5点。”，原句“开放”误识别为“开饭”，报告保留参考文本和 `exactMatch=false`。probe 校验时间和数字关键内容，不表示逐字完全正确。
+- 使用已运行的本地 Kokoro 合成 11.768 秒、24 kHz 的狼人杀样本，再真实调用本地 STT，识别耗时 311 ms。正确识别预言家、查验、五号、放逐等内容，“金水”误识别为“精谁”。这些耗时只代表当前机器和两条样本，不是一般性能或准确率承诺。
+- Chrome 文件虚拟麦克风验证了真实 `getUserMedia → AudioWorklet → PCM WAV → /api/stt → 本地模型 → 草稿`。原草稿得以保留并追加转写；识别本身没有改变游戏版本和事件，玩家编辑后点击「结束发言」才提交文字。
+- 浏览器检查通过麦克风拒绝、录音取消、延迟转写取消、迟到结果丢弃；模拟首个 AudioWorklet 初始化延迟并取消后，新录音仍正常。自动停止上传的 WAV 为 29.504 秒，真实转写成功。390 像素时录音和提交按钮保持在视口内，页面宽度为 390。无页面脚本错误。
+- 生产构建后使用独立 `next start` 进程，再通过真实会话上传公开中文 WAV；`/api/stt` 返回 HTTP 200 与转写文本，游戏状态保持一致。
+- 应用测试补充 local/external/zhipu 提供方协议、STT 专用 Key、loopback 限制、响应体上限、空结果/错误处理、取消，以及服务端对局/回合失效后的拒绝。转写接口响应为 `private, no-store`。
+
+实际报告见 [local-stt.json](evidence/local-stt.json)，截图见 [桌面草稿](screenshots/local-stt-draft.png)、[移动端草稿](screenshots/local-stt-mobile.png)。模型和完整本地验收产物保存在忽略的 `.data/`，部署和外部 API 配置见 [LOCAL_STT.md](LOCAL_STT.md)。
+
+验证边界：浏览器使用固定音频作为虚拟麦克风，没有对用户的物理麦克风、真实环境噪声或口音进行测试。外部 STT 适配器使用固定响应测试验证，没有调用付费云端识别，也没有因本次改动重跑真实 AI 完整对局。识别结果需要玩家校对；本地 SenseVoice 不支持本项目动态术语 prompt。
+
+历史云端 `glm-tts` 探测曾返回 HTTP 429／错误码 `1113`，现已由本地 TTS 替换；历史记录保留在 [provider-probe.json](evidence/provider-probe.json)。`node scripts/provider-probe.mjs` 是显式的智谱识别探测工具，仍通过 stdin 接收 Key，不代表游戏默认使用云端 STT。
 
 ## 浏览器检查中修复的问题
 
