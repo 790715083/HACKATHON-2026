@@ -1,0 +1,93 @@
+{
+  "verifiedAt": "2026-10-25",
+  "reviewedCommit": "34c0171",
+  "findingsFixed": [
+    "Streamed multipart uploads were fully read before size rejection.",
+    "Transient transcription failure discarded the only recorded WAV.",
+    "Appending STT text silently truncated a full draft at 1200 characters."
+  ],
+  "browser": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T05:39:22.885Z",
+    "browser": "Chrome, file-backed microphone",
+    "failureRetainsRecording": true,
+    "retryUsesSameWav": true,
+    "microphoneStartsForRetry": 1,
+    "wavBytes": 207404,
+    "originalDraftLength": 1190,
+    "fullDraftLength": 1205,
+    "transcript": "开饭时间早上9点至下午5点。",
+    "overflowTextPreserved": true,
+    "overflowSubmissionBlocked": true,
+    "editingReenablesSubmit": true,
+    "successReleasesRetry": true,
+    "cancelReleasesRetry": true,
+    "cancelInFlightRetryIgnoresLateResult": true,
+    "recognitionDidNotMutateGame": true,
+    "explicitEditedSubmit": true,
+    "mobileWidth": 390,
+    "mainUiTextSizePreserved": true,
+    "mainUiHistoryDrawerPreserved": true,
+    "pageErrors": [],
+    "mobileControlsFullyVisible": true,
+    "mobileActionDockHiddenAtControls": true
+  },
+  "httpUpload": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T05:24:08.149Z",
+    "realHttpChunkedUpload": true,
+    "bodyMiB": 32,
+    "status": 413,
+    "response": {
+      "error": "录音文件过大。"
+    },
+    "gameUnchanged": true
+  },
+  "checks": {
+    "applicationTests": 56,
+    "localSttTests": 6,
+    "localTtsTests": 5,
+    "typecheck": "passed",
+    "productionBuild": "passed"
+  },
+  "limits": [
+    "Fixed WAV virtual microphone; physical microphone and noisy environments not tested.",
+    "Transient failure was injected; the retry used the real local model.",
+    "External STT adapters tested with fixed responses, without paid API calls."
+  ],
+  "production": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T05:39:12.086Z",
+    "productionNextServer": true,
+    "integratedMain": "a14fbb5",
+    "transcriptionStatus": 200,
+    "text": "开饭时间早上9点至下午5点。",
+    "chunkedUploadMiB": 32,
+    "oversizedStatus": 413,
+    "gameUnchanged": true
+  },
+  "combinedBrowserEdges": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T05:37:53.638Z",
+    "permissionDeniedKeepsDraft": true,
+    "cancelDuringWorkletLoadDoesNotStopNewRecording": true,
+    "autoStopElapsedMs": 30740,
+    "uploadedDuration": 29.512,
+    "sampleRate": 16000,
+    "text": "开饭时间早上9点至下午5点。",
+    "pageErrors": []
+  },
+  "integration": {
+    "baseCommit": "a14fbb5",
+    "includedMainPr": 4,
+    "conflictResolved": "src/components/GameApp.tsx: state, preferences and action panel",
+    "preserved": [
+      "STT provider and retryable WAV",
+      "complete draft and overflow guard",
+      "text size preference",
+      "history and player notes",
+      "target confirmations and mobile action dock"
+    ],
+    "applicationTests": 56
+  }
+}

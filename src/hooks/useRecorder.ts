@@ -10,46 +10,120 @@ function wavBlob(chunks: Float32Array[], sampleRate: number) {
   return new Blob([buffer],{type:'audio/wav'});
 }
 
-export function useRecorder(onTranscript:(text:string)=>void,onStart:()=>void) {
-  const [recording,setRecording]=useState(false),[starting,setStarting]=useState(false),[transcribing,setTranscribing]=useState(false),[seconds,setSeconds]=useState(0),[error,setError]=useState('');
-  const stream=useRef<MediaStream|null>(null),context=useRef<AudioContext|null>(null),node=useRef<AudioWorkletNode|null>(null),source=useRef<MediaStreamAudioSourceNode|null>(null),gain=useRef<GainNode|null>(null);
-  const samples=useRef<Float32Array[]>([]),timer=useRef<ReturnType<typeof setInterval>|null>(null),limit=useRef<ReturnType<typeof setTimeout>|null>(null),request=useRef<AbortController|null>(null),version=useRef(0),rate=useRef(16000),isRecording=useRef(false);
-  const transcriptRef=useRef(onTranscript),startRef=useRef(onStart);transcriptRef.current=onTranscript;startRef.current=onStart;
-  const cleanup=useCallback(()=>{
-    if(timer.current)clearInterval(timer.current);if(limit.current)clearTimeout(limit.current);
-    timer.current=null;limit.current=null;node.current?.disconnect();source.current?.disconnect();gain.current?.disconnect();
-    node.current=null;source.current=null;gain.current=null;
-    stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;
-    void context.current?.close().catch(()=>{});context.current=null;isRecording.current=false;setRecording(false);
-  },[]);
-  const cancel=useCallback(()=>{version.current++;request.current?.abort();cleanup();samples.current=[];setStarting(false);setTranscribing(false);setSeconds(0);},[cleanup]);
-  const stop=useCallback(async()=>{
-    if(!isRecording.current)return;
-    cleanup();const chunks=samples.current;samples.current=[];
-    if(!chunks.length){setError('没有录到声音，请重试。');return;}
-    const v=version.current;setTranscribing(true);setError('');const controller=new AbortController();request.current=controller;
-    try {const form=new FormData();form.append('file',wavBlob(chunks,rate.current),'speech.wav');const res=await fetch('/api/stt',{method:'POST',body:form,signal:controller.signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'语音识别暂不可用');if(v===version.current){if(data.text?.trim())transcriptRef.current(data.text.trim());else setError('没有识别出文字，可以再次录音或直接输入。');}}
-    catch(e){if(!controller.signal.aborted&&v===version.current)setError(e instanceof Error?e.message:'语音识别失败');}
-    finally{if(v===version.current)setTranscribing(false);}
-  },[cleanup]);
-  const start=useCallback(async()=>{
-    cancel();setStarting(true);setError('');startRef.current();const v=version.current;
+type RecordingTarget = { gameId: string; turnId: string };
+type RecordedClip = { audio: Blob; target: RecordingTarget | null };
+
+export function useRecorder(onTranscript: (text: string) => void, onStart: () => void, target: RecordingTarget | null) {
+  const [recording, setRecording] = useState(false), [starting, setStarting] = useState(false);
+  const [transcribing, setTranscribing] = useState(false), [canRetry, setCanRetry] = useState(false);
+  const [seconds, setSeconds] = useState(0), [error, setError] = useState('');
+  const stream = useRef<MediaStream | null>(null), context = useRef<AudioContext | null>(null);
+  const node = useRef<AudioWorkletNode | null>(null), source = useRef<MediaStreamAudioSourceNode | null>(null), gain = useRef<GainNode | null>(null);
+  const samples = useRef<Float32Array[]>([]), timer = useRef<ReturnType<typeof setInterval> | null>(null), limit = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const request = useRef<AbortController | null>(null), pendingClip = useRef<RecordedClip | null>(null);
+  const version = useRef(0), rate = useRef(16000), isRecording = useRef(false);
+  const transcriptRef = useRef(onTranscript), startRef = useRef(onStart), targetRef = useRef(target), captureTarget = useRef<RecordingTarget | null>(null);
+  transcriptRef.current = onTranscript; startRef.current = onStart; targetRef.current = target;
+
+  const cleanup = useCallback(() => {
+    if (timer.current) clearInterval(timer.current);
+    if (limit.current) clearTimeout(limit.current);
+    timer.current = null; limit.current = null;
+    node.current?.disconnect(); source.current?.disconnect(); gain.current?.disconnect();
+    node.current = null; source.current = null; gain.current = null;
+    stream.current?.getTracks().forEach(track => track.stop()); stream.current = null;
+    void context.current?.close().catch(() => {}); context.current = null;
+    isRecording.current = false; setRecording(false);
+  }, []);
+
+  const cancel = useCallback(() => {
+    version.current++; request.current?.abort(); request.current = null;
+    cleanup(); samples.current = []; pendingClip.current = null; captureTarget.current = null;
+    setStarting(false); setTranscribing(false); setCanRetry(false); setSeconds(0); setError('');
+  }, [cleanup]);
+
+  const transcribe = useCallback(async (clip: RecordedClip) => {
+    if (request.current) return;
+    const v = version.current, controller = new AbortController();
+    request.current = controller; setTranscribing(true); setCanRetry(false); setError('');
+    let retryable = true;
     try {
-      if(!navigator.mediaDevices?.getUserMedia)throw new Error('当前浏览器无法录音，请使用本机 Chrome，或直接输入发言。');
-      const media=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
-      if(v!==version.current){media.getTracks().forEach(t=>t.stop());return;}
-      stream.current=media;const audioContext=new AudioContext({sampleRate:16000});context.current=audioContext;rate.current=audioContext.sampleRate;
+      const form = new FormData(); form.append('file', clip.audio, 'speech.wav');
+      if (clip.target) { form.append('gameId', clip.target.gameId); form.append('turnId', clip.target.turnId); }
+      const res = await fetch('/api/stt', { method: 'POST', body: form, signal: controller.signal });
+      retryable = res.status >= 500 || res.status === 429;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || '语音识别暂不可用。');
+      if (v !== version.current) return;
+      if (typeof data?.text !== 'string' || !data.text.trim()) throw new Error('没有识别出文字，可以再次录音或直接输入。');
+      transcriptRef.current(data.text.trim()); pendingClip.current = null;
+    } catch (e) {
+      if (!controller.signal.aborted && v === version.current) {
+        setError(e instanceof Error ? e.message : '语音识别失败。');
+        if (retryable) setCanRetry(true); else pendingClip.current = null;
+      }
+    } finally {
+      if (request.current === controller) request.current = null;
+      if (v === version.current) setTranscribing(false);
+    }
+  }, []);
+
+  const stop = useCallback(async () => {
+    if (!isRecording.current) return;
+    cleanup(); const chunks = samples.current; samples.current = [];
+    const frames = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    if (frames < rate.current * 0.2) { setError('录音太短，请说完一句话后再结束录音。'); return; }
+    const clip = { audio: wavBlob(chunks, rate.current), target: captureTarget.current };
+    pendingClip.current = clip;
+    await transcribe(clip);
+  }, [cleanup, transcribe]);
+
+  const retry = useCallback(async () => {
+    if (pendingClip.current) await transcribe(pendingClip.current);
+  }, [transcribe]);
+
+  const start = useCallback(async () => {
+    cancel(); captureTarget.current = targetRef.current; setStarting(true); startRef.current();
+    const v = version.current;
+    let ownMedia: MediaStream | null = null, ownContext: AudioContext | null = null;
+    const disposeOwn = () => {
+      ownMedia?.getTracks().forEach(track => track.stop());
+      if (ownContext?.state !== 'closed') void ownContext?.close().catch(() => {});
+    };
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('当前浏览器无法录音，请使用本机 Chrome，或直接输入发言。');
+      const media = ownMedia = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+      if (v !== version.current) { disposeOwn(); return; }
+      stream.current = media;
+      const audioContext = ownContext = new AudioContext({ sampleRate: 16000 });
+      context.current = audioContext; rate.current = audioContext.sampleRate;
       await audioContext.audioWorklet.addModule('/wav-recorder.worklet.js');
-      if(v!==version.current){cleanup();return;}
-      const capture=new AudioWorkletNode(audioContext,'pcm-capture');node.current=capture;
-      capture.port.onmessage=e=>{if(isRecording.current)samples.current.push(new Float32Array(e.data));};
-      source.current=audioContext.createMediaStreamSource(media);gain.current=audioContext.createGain();gain.current.gain.value=0;
-      source.current.connect(capture);capture.connect(gain.current);gain.current.connect(audioContext.destination);await audioContext.resume();
-      if(v!==version.current)return;
-      samples.current=[];isRecording.current=true;setRecording(true);setSeconds(0);timer.current=setInterval(()=>setSeconds(s=>s+1),1000);limit.current=setTimeout(()=>void stop(),29500);
-    } catch(e) {if(v===version.current){cleanup();setError(e instanceof DOMException&&e.name==='NotAllowedError'?'麦克风权限未开启，你仍可直接输入发言。':e instanceof Error?e.message:'无法打开麦克风，请检查设备。');}}
-    finally {if(v===version.current)setStarting(false);}
-  },[cancel,cleanup,stop]);
-  useEffect(()=>()=>cancel(),[cancel]);
-  return {recording,starting,transcribing,seconds,error,start,stop,cancel,clearError:()=>setError('')};
+      if (v !== version.current) { disposeOwn(); return; }
+      const capture = new AudioWorkletNode(audioContext, 'pcm-capture'); node.current = capture;
+      let captured = 0; const maxFrames = Math.floor(audioContext.sampleRate * 30);
+      capture.port.onmessage = e => {
+        if (v !== version.current || !isRecording.current) return;
+        const chunk = new Float32Array(e.data).subarray(0, maxFrames - captured);
+        samples.current.push(chunk); captured += chunk.length;
+        if (captured >= maxFrames) void stop();
+      };
+      source.current = audioContext.createMediaStreamSource(media); gain.current = audioContext.createGain(); gain.current.gain.value = 0;
+      source.current.connect(capture); capture.connect(gain.current); gain.current.connect(audioContext.destination);
+      await audioContext.resume();
+      if (v !== version.current) { disposeOwn(); return; }
+      samples.current = []; isRecording.current = true; setRecording(true); setSeconds(0);
+      timer.current = setInterval(() => setSeconds(s => s + 1), 1000); limit.current = setTimeout(() => void stop(), 29500);
+    } catch (e) {
+      disposeOwn();
+      if (v === version.current) {
+        cleanup();
+        setError(e instanceof DOMException && e.name === 'NotAllowedError' ? '麦克风权限未开启，你仍可直接输入发言。'
+          : e instanceof DOMException && e.name === 'NotFoundError' ? '没有找到麦克风，请连接设备或直接输入发言。'
+          : e instanceof Error ? e.message : '无法打开麦克风，请检查设备。');
+      }
+    } finally { if (v === version.current) setStarting(false); }
+  }, [cancel, cleanup, stop]);
+
+  useEffect(() => () => cancel(), [cancel]);
+  return { recording, starting, transcribing, canRetry, seconds, error, start, stop, retry, cancel, clearError: () => setError('') };
 }

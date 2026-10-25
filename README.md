@@ -4,14 +4,16 @@
 
 ## 本地运行
 
-需要 Node.js 22+、pnpm 11、Python 3.12+ 和智谱标准模型 API Key。AI 配音使用本地 Kokoro 中文模型，文本对局与录音识别使用智谱。
+需要 Node.js 22+、pnpm 11、Python 3.12+ 和智谱标准模型 API Key。AI 配音使用本地 Kokoro 中文模型，玩家录音识别默认使用本地 SenseVoiceSmall INT8，文本对局使用智谱。识别也可显式切换到外部 API。
 
 ```sh
 pnpm install
-# 首次安装配音依赖和模型（约 140 MiB 模型下载）：
+# 首次安装语音模型（TTS 约 140 MiB、STT 约 155 MiB 下载）：
 pnpm tts:setup
-# 在单独的终端运行，保持服务开启：
+pnpm stt:setup
+# 以下服务分别在两个终端运行，保持开启：
 pnpm tts:start
+pnpm stt:start
 ```
 
 再打开一个终端启动游戏：
@@ -32,11 +34,17 @@ pnpm dev
 | `ZHIPU_API_KEY` | 必填 | 仅服务端使用的标准 API 凭据 |
 | `ZHIPU_BASE_URL` | `https://open.bigmodel.cn/api/paas/v4` | 智谱服务地址 |
 | `ZHIPU_CHAT_MODEL` | `glm-5.3-flash` | 发言、行动与复盘 |
-| `ZHIPU_STT_MODEL` | `glm-asr-2512` | 玩家录音转写 |
+| `STT_PROVIDER` | `local` | 识别提供方：`local` / `zhipu` / `external` |
+| `STT_BASE_URL` | `http://127.0.0.1:8881/v1` | 本地或兼容外部识别接口地址 |
+| `STT_MODEL` | `sensevoice-small-int8` | 本地识别模型；external 下必须配置 |
+| `STT_API_KEY` | 未设置 | 仅 external 使用的服务端识别凭据 |
+| `ZHIPU_STT_MODEL` | `glm-asr-2512` | 仅 zhipu 提供方使用 |
 | `TTS_BASE_URL` | `http://127.0.0.1:8880/v1` | 仅服务端连接的本地配音地址 |
 | `TTS_MODEL` | `kokoro-v1.1-zh` | 本地中文配音模型 |
 
 本地 TTS 使用 sherpa-onnx 在 CPU 上运行 Kokoro v1.1-zh INT8，无需 GPU、Docker 或配音 API Key。模型和 Python 虚拟环境保存在忽略的 `.data/tts/`，下载完成后合成过程离线运行。八名 AI 各自保持固定的中文音色。详细部署、验证和故障处理见 [本地 TTS](docs/LOCAL_TTS.md)。
+
+玩家语音识别使用 sherpa-onnx 在 CPU 上运行 SenseVoiceSmall INT8，默认只连接本机 `127.0.0.1:8881`，无需识别 API Key。模型安装后可离线转写，本地服务异常不会自动上传云端。安装、外部 API 配置和故障处理见 [本地 STT](docs/LOCAL_STT.md)。
 
 ## 怎么玩
 
@@ -49,7 +57,7 @@ pnpm dev
 - 全部狼人出局则好人获胜；全部村民或全部神职出局则狼人获胜。先结算猎人等连锁行动再判胜，同时满足双方条件为平局。
 - 真人出局后继续观战；终局才统一公开所有身份和复盘。本版没有警长。
 
-玩家可以打字，也可以每次录制最长 30 秒的语音。录音会编码为 WAV，识别结果放入草稿，确认后才作为发言提交。AI 配音可关闭、停止或重播；录音时停止配音以避免回声。
+玩家可以打字，也可以每次录制最长 30 秒的语音。录音会编码为 WAV，识别结果放入可编辑草稿，确认后才作为发言提交。打开麦克风、录音和转写期间均可取消；暂停或切换回合会丢弃旧录音结果。AI 配音可关闭、停止或重播；录音时停止配音以避免回声。
 
 右上角的文字大小按钮可以切换标准／放大字号，并记住选择。对局手记支持按天数、玩家回查发言与完整票型；展开“个人标记”可记录怀疑、信任和对方声称的身份。标记按对局保存在当前浏览器，只代表你的判断。翻阅旧记录时，新发言不会打断阅读，点击“回到最新”即可继续跟随。手机底部提供当前行动入口，投票、查验和用药会在确认按钮上显示具体目标。
 
@@ -85,7 +93,7 @@ pnpm start
 pnpm audit:live
 ```
 
-`pnpm tts:probe` 不需要 Key，可验证本地中文多音色合成并输出 WAV。`node scripts/provider-probe.mjs` 可通过 stdin 接收 Key，联合探测智谱文本、本地配音及智谱识别；标准输入必须保持打开，并先启动本地 TTS。文本模型和语音识别按智谱实际用量计费，TTS 在本机合成。
+`pnpm tts:probe` 不需要 Key，可验证本地中文多音色合成并输出 WAV。`pnpm stt:probe` 不需要 Key，使用模型自带中文 WAV 验证真实本地转写；`pnpm stt:test` 检查本地 STT HTTP 协议和音频边界。`node scripts/provider-probe.mjs` 可通过 stdin 接收 Key，联合探测智谱文本、本地配音及智谱识别；标准输入必须保持打开，并先启动本地 TTS。文本模型按智谱实际用量计费；默认 TTS、STT 都在本机推理。显式切换外部识别后按对应服务计费。
 
 本次实现的具体检查结果及已知限制见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。
 

@@ -1,0 +1,83 @@
+{
+  "verifiedAt": "2026-10-25",
+  "runtime": "sherpa-onnx 2.0.0 / CPU",
+  "model": "sensevoice-small-int8",
+  "modelArchiveSha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+  "officialSample": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T04:21:37.054Z",
+    "provider": "local",
+    "model": "sensevoice-small-int8",
+    "sample": ".data/stt/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17/test_wavs/zh.wav",
+    "duration": 5.592,
+    "sampleRate": 16000,
+    "channels": 1,
+    "dataBytes": 178944,
+    "elapsedMs": 261,
+    "text": "开饭时间早上9点至下午5点。",
+    "reference": "开放时间早上9点至下午5点。",
+    "exactMatch": false
+  },
+  "gameSpeechSample": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T04:22:09.221Z",
+    "provider": "local",
+    "model": "sensevoice-small-int8",
+    "sample": ".data/audit/game-speech.wav",
+    "duration": 11.767916666666666,
+    "sampleRate": 24000,
+    "channels": 1,
+    "dataBytes": 564860,
+    "elapsedMs": 311,
+    "text": "我是三号玩家，我是预言家昨天查验了5号，他是精谁。今天我建议听完所有人的发言，再决定放逐谁。"
+  },
+  "browser": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T04:24:17.789Z",
+    "browser": "Chrome headless, file-backed microphone",
+    "sample": "official Chinese WAV; real AudioWorklet and local /api/stt",
+    "transcript": "开饭时间早上9点至下午5点。",
+    "draft": "我先说一句。 开饭时间早上9点至下午5点。",
+    "uploadedWavBytes": 208638,
+    "draftDidNotMutateGame": true,
+    "cancelRecording": true,
+    "cancelTranscription": true,
+    "editableBeforeExplicitSubmit": true,
+    "mobileWidth": 390,
+    "pageErrors": []
+  },
+  "checks": {
+    "typecheck": "passed",
+    "applicationTests": 48,
+    "localSttServiceTests": 6,
+    "localTtsServiceTests": 5,
+    "productionBuild": "passed"
+  },
+  "limits": [
+    "File-backed microphone, not the user physical microphone.",
+    "External adapters verified with fixed responses; no paid API was called.",
+    "Known recognition errors retained: 开放→开饭, 金水→精谁.",
+    "No new full live AI game replay was performed for this STT change."
+  ],
+  "production": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T04:30:13.358Z",
+    "productionNextServer": true,
+    "sttProvider": "local",
+    "status": 200,
+    "cacheControl": "private, no-store",
+    "text": "开饭时间早上9点至下午5点。",
+    "gameUnchanged": true
+  },
+  "browserEdges": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T04:30:45.536Z",
+    "permissionDeniedKeepsDraft": true,
+    "cancelDuringWorkletLoadDoesNotStopNewRecording": true,
+    "autoStopElapsedMs": 30450,
+    "uploadedDuration": 29.504,
+    "sampleRate": 16000,
+    "text": "开饭时间早上9点至下午5点。",
+    "pageErrors": []
+  }
+}

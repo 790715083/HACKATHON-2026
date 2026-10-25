@@ -23,5 +23,5 @@ export interface PlayerView {
   winner: Winner | null; players: VisiblePlayer[]; me: { seat: number; role: Role; alive: boolean; teammates: number[]; antidote?: boolean; poison?: boolean; };
   turn: Turn | null; currentSpeaker: number | null; events: VisibleEvent[]; voteRounds: VoteRound[]; review?: string;
 }
-export interface GameResponse { game: PlayerView | null; configured: boolean; models: { chat: string; tts: string; stt: string }; error?: string; }
+export interface GameResponse { game: PlayerView | null; configured: boolean; models: { chat: string; tts: string; stt: string; sttProvider: string }; error?: string; }
 export type StreamEvent = { type: 'state'; game: PlayerView } | { type: 'speech'; turnId: string; seat: number; text: string } | { type: 'error'; message: string } | { type: 'done' };

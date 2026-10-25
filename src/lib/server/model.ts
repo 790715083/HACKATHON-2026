@@ -1,8 +1,12 @@
 import type { GameAction, GameState, Turn } from '@/lib/game/types';
 import { getAgentContext } from '@/lib/game/engine';
 import { ttsModel } from './local-tts';
+import { sttConfiguration } from './stt-config';
 
-export function modelConfiguration() { return { chat: process.env.ZHIPU_CHAT_MODEL || 'glm-5.3-flash', tts: ttsModel(), stt: process.env.ZHIPU_STT_MODEL || 'glm-asr-2512' }; }
+export function modelConfiguration() {
+  const stt = sttConfiguration();
+  return { chat: process.env.ZHIPU_CHAT_MODEL || 'glm-5.3-flash', tts: ttsModel(), stt: stt.model, sttProvider: stt.provider };
+}
 export function isConfigured() { const key = process.env.ZHIPU_API_KEY?.trim(); return !!key && !/^your_|placeholder|example/i.test(key); }
 export function providerURL(endpoint: string) { return `${(process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4').replace(/\/$/, '')}/${endpoint}`; }
 export function providerKey() { const key = process.env.ZHIPU_API_KEY?.trim(); if (!key || !isConfigured()) throw new Error('尚未配置智谱 API Key，请在服务端设置 ZHIPU_API_KEY 后重新启动。'); return key; }
