@@ -8,12 +8,12 @@
   ],
   "browser": {
     "ok": true,
-    "verifiedAt": "2026-10-25T05:23:22.992Z",
+    "verifiedAt": "2026-10-25T05:39:22.885Z",
     "browser": "Chrome, file-backed microphone",
     "failureRetainsRecording": true,
     "retryUsesSameWav": true,
     "microphoneStartsForRetry": 1,
-    "wavBytes": 208172,
+    "wavBytes": 207404,
     "originalDraftLength": 1190,
     "fullDraftLength": 1205,
     "transcript": "开饭时间早上9点至下午5点。",
@@ -26,7 +26,11 @@
     "recognitionDidNotMutateGame": true,
     "explicitEditedSubmit": true,
     "mobileWidth": 390,
-    "pageErrors": []
+    "mainUiTextSizePreserved": true,
+    "mainUiHistoryDrawerPreserved": true,
+    "pageErrors": [],
+    "mobileControlsFullyVisible": true,
+    "mobileActionDockHiddenAtControls": true
   },
   "httpUpload": {
     "ok": true,
@@ -40,7 +44,7 @@
     "gameUnchanged": true
   },
   "checks": {
-    "applicationTests": 49,
+    "applicationTests": 56,
     "localSttTests": 6,
     "localTtsTests": 5,
     "typecheck": "passed",
@@ -53,12 +57,37 @@
   ],
   "production": {
     "ok": true,
-    "verifiedAt": "2026-10-25T05:25:47.375Z",
+    "verifiedAt": "2026-10-25T05:39:12.086Z",
     "productionNextServer": true,
+    "integratedMain": "a14fbb5",
     "transcriptionStatus": 200,
     "text": "开饭时间早上9点至下午5点。",
     "chunkedUploadMiB": 32,
     "oversizedStatus": 413,
     "gameUnchanged": true
+  },
+  "combinedBrowserEdges": {
+    "ok": true,
+    "verifiedAt": "2026-10-25T05:37:53.638Z",
+    "permissionDeniedKeepsDraft": true,
+    "cancelDuringWorkletLoadDoesNotStopNewRecording": true,
+    "autoStopElapsedMs": 30740,
+    "uploadedDuration": 29.512,
+    "sampleRate": 16000,
+    "text": "开饭时间早上9点至下午5点。",
+    "pageErrors": []
+  },
+  "integration": {
+    "baseCommit": "a14fbb5",
+    "includedMainPr": 4,
+    "conflictResolved": "src/components/GameApp.tsx: state, preferences and action panel",
+    "preserved": [
+      "STT provider and retryable WAV",
+      "complete draft and overflow guard",
+      "text size preference",
+      "history and player notes",
+      "target confirmations and mobile action dock"
+    ],
+    "applicationTests": 56
   }
 }

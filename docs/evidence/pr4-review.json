@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-25",
+  "reviewedHead": "3f0cc17ebbce83ab75b48b236e34a88f68562ea3",
+  "base": "c3d89ee4afec58865da2c1ef623eeb53d1cfe128",
+  "mode": "Production build, isolated synthetic checkpoints, real game/action routes and locally controlled SSE",
+  "findings": [
+    {
+      "priority": "P2",
+      "issue": "Clearing vote filters changed the active tab",
+      "fixed": true
+    },
+    {
+      "priority": "P2",
+      "issue": "Selecting the active events tab stopped following",
+      "fixed": true
+    },
+    {
+      "priority": "P2",
+      "issue": "Switching tabs lost the saved review position",
+      "fixed": true
+    }
+  ],
+  "checks": {
+    "build": "passed",
+    "typecheck": "passed",
+    "nodeTests": 49,
+    "localTtsServiceTests": 5
+  },
+  "browser": {
+    "before": {
+      "activeTab": {
+        "max": 4959,
+        "tab": "发言记录",
+        "top": 4959
+      },
+      "afterActiveTabClick": {
+        "latestButton": "1 条新记录 · 回到最新",
+        "max": 5138,
+        "top": 4959
+      },
+      "afterClearVoteFilters": {
+        "day": "",
+        "seat": "",
+        "tab": "发言记录"
+      },
+      "beforeTabRoundTrip": 2934,
+      "afterTabRoundTrip": 0
+    },
+    "after": {
+      "activeTabStart": {
+        "max": 4959,
+        "top": 4959
+      },
+      "activeTabFollow": {
+        "latestButton": null,
+        "max": 5094,
+        "top": 5094
+      },
+      "beforeTabRoundTrip": 2934,
+      "afterTabRoundTrip": 2934,
+      "clearVoteFilters": {
+        "day": "",
+        "rounds": 3,
+        "seat": "",
+        "tab": "投票记录"
+      },
+      "returnWithNewMessage": {
+        "latestButton": "1 条新记录 · 回到最新",
+        "top": 2934
+      },
+      "explicitLatest": {
+        "latestButton": null,
+        "max": 5229,
+        "top": 5229
+      },
+      "clearEventFilters": {
+        "tab": "发言记录",
+        "top": 3789,
+        "before": 3789
+      },
+      "mobileBeforeClose": {
+        "bodyOverflow": "hidden",
+        "focused": "关闭记录",
+        "top": 2945
+      },
+      "mobileClosed": {
+        "bodyOverflow": "",
+        "focused": "打开对局手记",
+        "height": 0
+      },
+      "mobileReopened": {
+        "bodyOverflow": "hidden",
+        "focused": "关闭记录",
+        "latestButton": "1 条新记录 · 回到最新",
+        "top": 2945
+      }
+    }
+  },
+  "targetSmoke": {
+    "targetSeat": 5,
+    "checkpointVote": 5,
+    "feedback": "已提交：投给 5 号 · 陈渡"
+  }
+}
