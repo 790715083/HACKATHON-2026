@@ -90,6 +90,8 @@ pnpm dev
 
 Next.js App Router / TypeScript / React / Tailwind CSS。规则和角色知识保存在 `src/lib/game`，服务端存储与模型适配位于 `src/lib/server`，界面只接收已过滤的真人视图。
 
+模块划分、对局状态机、AI 与语音链路、存档恢复和部署边界见 [架构设计](docs/ARCHITECTURE.md)。
+
 | 接口 | 行为 |
 | --- | --- |
 | `GET /api/game` | 获取本地会话的真人可见状态及模型配置状态 |
