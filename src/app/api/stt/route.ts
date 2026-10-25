@@ -5,13 +5,35 @@ import { transcribeSpeech, wavMetadata } from '@/lib/server/speech';
 import { getNextTurn } from '@/lib/game/engine';
 export const runtime = 'nodejs';
 
+const MAX_FORM_BYTES = 26 * 1024 * 1024;
+
+async function recordingForm(request: Request): Promise<FormData> {
+  const contentType = request.headers.get('content-type');
+  if (!request.body || contentType?.split(';', 1)[0].trim().toLowerCase() !== 'multipart/form-data') {
+    throw new HttpError(400, '请提供有效的录音表单。');
+  }
+  let received = 0; let oversized = false;
+  const body = request.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      received += chunk.byteLength;
+      if (received > MAX_FORM_BYTES) {
+        oversized = true;
+        // Throwing also cancels the source stream, including chunked uploads.
+        throw new Error('recording form too large');
+      }
+      controller.enqueue(chunk);
+    },
+  }));
+  try { return await new Response(body, { headers: { 'Content-Type': contentType } }).formData(); }
+  catch { throw new HttpError(oversized ? 413 : 400, oversized ? '录音文件过大。' : '请提供有效的录音表单。'); }
+}
+
 export async function POST(request: Request) {
   try {
     ensureSameOrigin(request);
-    if (Number(request.headers.get('content-length') ?? 0) > 26 * 1024 * 1024) throw new HttpError(413, '录音文件过大。');
+    if (Number(request.headers.get('content-length') ?? 0) > MAX_FORM_BYTES) throw new HttpError(413, '录音文件过大。');
     const { gameId } = await currentGameId(request); const state = await readGame(gameId); if (!state) throw new HttpError(404, '对局不存在。');
-    let form: FormData;
-    try { form = await request.formData(); } catch { throw new HttpError(400, '请提供有效的录音表单。'); }
+    const form = await recordingForm(request);
     if (form.has('gameId') && form.get('gameId') !== gameId) throw new HttpError(409, '当前对局已改变，请重新录音。');
     const turnId = form.get('turnId');
     const turn = getNextTurn(state);

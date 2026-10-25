@@ -50,3 +50,38 @@ test('STT route returns a private editable transcript without mutating state and
   globalThis.fetch = async () => { await saveSession(session, randomUUID()); return Response.json({ text: '不应跨对局返回' }); };
   assert.equal((await stt(upload())).status, 409);
 });
+
+test('STT bounds actual streamed upload bytes and cancels oversized chunked or forged-length requests', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'moonlit-stt-limit-'));
+  const previousDir = process.env.MOONLIT_DATA_DIR, originalFetch = globalThis.fetch;
+  process.env.MOONLIT_DATA_DIR = directory;
+  t.after(async () => {
+    globalThis.fetch = originalFetch;
+    if (previousDir === undefined) delete process.env.MOONLIT_DATA_DIR; else process.env.MOONLIT_DATA_DIR = previousDir;
+    await rm(directory, { recursive: true, force: true });
+  });
+  const state = createGame({ id: randomUUID(), preferredRole: 'werewolf' }), session = randomUUID();
+  await saveGame(state); await saveSession(session, state.id);
+  let calls = 0; globalThis.fetch = async () => { calls++; throw new Error('must not call a provider for oversized audio'); };
+  for (const declaredLength of [undefined, '100']) {
+    let chunks = 0, cancelled = false;
+    const bytes = new Uint8Array(1024 * 1024);
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (chunks === 0) controller.enqueue(Buffer.from('--upload\r\nContent-Disposition: form-data; name="file"; filename="speech.wav"\r\nContent-Type: audio/wav\r\n\r\n'));
+        else if (chunks <= 64) controller.enqueue(bytes);
+        else { controller.enqueue(Buffer.from('\r\n--upload--\r\n')); controller.close(); }
+        chunks++;
+      },
+      cancel() { cancelled = true; },
+    });
+    const headers = new Headers({ Cookie: `${SESSION_COOKIE}=${session}`, 'Content-Type': 'multipart/form-data; boundary=upload' });
+    if (declaredLength !== undefined) headers.set('Content-Length', declaredLength);
+    const request = new Request('http://localhost:3000/api/stt', { method: 'POST', headers, body: stream, duplex: 'half' } as RequestInit & { duplex: 'half' });
+    const response = await stt(request);
+    assert.equal(response.status, 413); assert.match((await response.json()).error, /过大/);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(cancelled, true); assert.ok(chunks < 32, `read ${chunks} chunks before rejecting`);
+  }
+  assert.equal(calls, 0); assert.deepEqual(await readGame(state.id), state);
+});
