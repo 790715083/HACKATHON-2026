@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/lib/game/*.test.ts src/lib/server/*.test.ts",
+    "test": "tsx --test src/lib/game/*.test.ts src/lib/server/*.test.ts src/lib/ui/*.test.ts",
     "audit:live": "tsx scripts/live-audit.ts",
     "tts:setup": "python3 scripts/setup-local-tts.py",
     "tts:start": "node scripts/start-local-tts.mjs",
